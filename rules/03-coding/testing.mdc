@@ -1,0 +1,260 @@
+---
+description: 单元测试规范（测试结构、Mock使用、断言、覆盖率、命名、组织），适用于所有 Spring Boot 项目。
+globs:
+alwaysApply: true
+layer: L3
+allowedReferences: [L3, L4]
+---
+
+# 单元测试规范
+
+## 适用范围
+定义所有Spring Boot项目的单元测试规范，包括测试结构、Mock使用、断言、覆盖率等。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 每个Controller、Service、Mapper都必须有对应的测试类
+- 所有公共方法都必须有测试用例
+- 核心业务逻辑覆盖率 ≥ 80%
+- 必须使用AAA模式（Arrange-Act-Assert）
+- 必须使用AssertJ进行断言
+- 必须正确处理继承关系中的链式调用问题
+- 必须使用正确的对象创建和属性设置方法
+- 每个公共方法必须至少包含正常场景和异常场景测试
+- 必须测试所有业务异常分支
+- 必须测试参数验证（null、空值、非法值）
+- 必须使用@BeforeEach准备测试数据，使用@AfterEach清理测试数据
+- 必须确保测试方法幂等性，可重复运行
+- 必须确保测试方法相互独立，不依赖执行顺序
+
+### 禁止要求（MUST NOT）
+- 禁止跳过测试代码生成
+- 禁止在测试类中使用TODO标记
+- 禁止使用过时断言方法
+- 禁止在继承关系中使用链式调用（会导致类型转换错误）
+- 禁止在测试代码中使用可能导致编译错误的链式调用
+
+### 可选要求（MAY）
+- 可以使用@MockBean或@Mock模拟依赖
+- 可以使用Builder模式创建测试数据
+- 可以使用@SpringBootTest进行集成测试
+- 可以使用分步设置对象属性的方法
+- 可以使用构造函数创建对象
+
+## 测试代码编写规范
+
+### 对象创建和属性设置
+**正确做法**：
+```java
+// 创建对象
+SearchStudentRequest request = new SearchStudentRequest();
+// 分步设置属性
+request.setClassId(1L);
+request.setKeyword("张三");
+request.setIsEnabled(true);
+request.setPageNumber(1);
+request.setPageSize(10);
+```
+
+**错误做法**：
+```java
+// 避免在继承关系中使用链式调用
+SearchStudentRequest request = new SearchStudentRequest()
+    .setClassId(1L)  // 编译错误：返回类型不匹配
+    .setKeyword("张三");
+```
+
+### 继承关系处理
+- 当请求类继承自 `CommonPageRequest` 时，避免使用链式调用
+- 使用分步设置属性的方法
+- 确保类型安全，避免编译错误
+
+## 测试幂等性规范
+
+### 核心原则
+- **测试独立性**：每个测试方法应该独立运行，不依赖其他测试
+- **测试可重复性**：同一个测试可以多次运行，结果一致
+- **测试隔离性**：测试之间不共享状态，不相互影响
+
+### 测试数据管理
+
+#### 使用@BeforeEach准备数据
+```java
+@BeforeEach
+void setUp() {
+    // 1. 清理可能存在的旧数据
+    testDataCleanup();
+    
+    // 2. 准备测试数据
+    testUser = createTestUser();
+    testCourse = createTestCourse();
+    
+    // 3. 插入数据库（如果需要）
+    userMapper.insert(testUser);
+    courseMapper.insert(testCourse);
+}
+```
+
+#### 使用@AfterEach清理数据
+```java
+@AfterEach
+void tearDown() {
+    // 1. 删除测试数据
+    if (testUser != null && testUser.getId() != null) {
+        userMapper.deleteById(testUser.getId());
+    }
+    if (testCourse != null && testCourse.getId() != null) {
+        courseMapper.deleteById(testCourse.getId());
+    }
+    
+    // 2. 重置Mock对象
+    Mockito.reset(userMapper, courseMapper);
+}
+```
+
+### 幂等性最佳实践
+
+#### 1. 数据隔离
+- 每个测试使用唯一的测试数据（如带时间戳的用户名）
+- 避免使用固定ID，使用数据库自动生成
+
+#### 2. 状态清理
+- 测试结束后必须清理所有测试数据
+- 重置所有Mock对象的状态
+
+#### 3. 避免共享状态
+- 不使用类级别的共享变量（除非必要）
+- 每个测试创建自己的测试数据
+
+#### 4. 事务回滚（集成测试）
+```java
+@SpringBootTest
+@Transactional  // 测试结束自动回滚
+class UserServiceIntegrationTest {
+    // 测试方法
+}
+```
+
+### 错误示例（不具备幂等性）
+```java
+// ❌ 错误：没有清理数据，第二次运行会失败
+@Test
+void testCreateUser() {
+    UserEntity user = new UserEntity();
+    user.setUsername("testuser");  // 固定用户名
+    userMapper.insert(user);  // 第二次运行时会因为用户名重复而失败
+    
+    assertThat(user.getId()).isNotNull();
+}
+```
+
+### 正确示例（具备幂等性）
+```java
+// ✅ 正确：使用@BeforeEach和@AfterEach保证幂等性
+private UserEntity testUser;
+
+@BeforeEach
+void setUp() {
+    testUser = new UserEntity();
+    testUser.setUsername("testuser_" + System.currentTimeMillis());  // 唯一用户名
+}
+
+@Test
+void testCreateUser() {
+    userMapper.insert(testUser);
+    assertThat(testUser.getId()).isNotNull();
+}
+
+@AfterEach
+void tearDown() {
+    if (testUser != null && testUser.getId() != null) {
+        userMapper.deleteById(testUser.getId());
+    }
+}
+```
+
+## 测试场景要求
+
+### 必需测试场景（每个公共方法）
+
+#### 正常场景（Happy Path）
+- **基本功能**：验证方法在正常输入下能正确执行
+- **返回值验证**：验证返回值符合预期
+- **状态变更**：验证方法执行后系统状态正确变更
+
+#### 异常场景（Exception Cases）
+- **参数为null**：验证参数为null时的处理
+- **数据不存在**：验证查询不到数据时的处理
+- **业务异常**：验证业务规则违反时的异常抛出
+- **权限不足**：验证无权限时的处理
+
+#### 边界场景（Boundary Cases）
+- **边界值**：验证最小值、最大值、临界值
+- **空集合**：验证空列表、空Map的处理
+- **特殊字符**：验证特殊字符的处理
+
+#### 可选测试场景
+- **并发场景**：高并发、事务冲突（核心业务）
+- **性能场景**：大数据量处理（核心功能）
+
+### 测试用例数量指导
+
+| 方法类型 | 最少测试用例 | 说明 |
+|---------|------------|------|
+| 查询单条数据 | 2个 | 正常查询 + 数据不存在 |
+| 分页查询 | 3个 | 正常查询 + 空结果 + 参数验证 |
+| 新增数据 | 3个 | 成功新增 + 参数验证 + 业务规则验证 |
+| 更新数据 | 3个 | 成功更新 + 数据不存在 + 参数验证 |
+| 删除数据 | 2个 | 成功删除 + 数据不存在 |
+| 复杂业务方法 | 4-6个 | 覆盖所有业务分支 |
+
+## 测试完整性检查清单
+
+### Controller测试检查
+- [ ] 是否为每个API端点编写了测试
+- [ ] 是否测试了参数验证（@Valid）
+- [ ] 是否测试了正常响应和错误响应
+- [ ] 是否测试了HTTP状态码
+- [ ] 是否使用MockMvc进行Web层测试
+
+### Service测试检查
+- [ ] 是否为每个公共方法编写了测试
+- [ ] 是否测试了所有业务异常分支
+- [ ] 是否测试了事务回滚场景
+- [ ] 是否Mock了所有外部依赖（Mapper、其他Service）
+- [ ] 是否验证了日志记录
+
+### Mapper测试检查
+- [ ] 是否为每个SQL方法编写了测试
+- [ ] 是否测试了查询结果为空的情况
+- [ ] 是否测试了批量操作
+- [ ] 是否使用了@MybatisTest或实际数据库
+
+### 测试覆盖率检查
+- [ ] 核心业务逻辑覆盖率是否 ≥ 80%
+- [ ] 是否遗漏了关键业务方法
+- [ ] 是否测试了所有异常处理分支
+
+### 测试幂等性检查
+- [ ] 是否使用了@BeforeEach准备测试数据
+- [ ] 是否使用了@AfterEach清理测试数据
+- [ ] 测试是否可以重复运行（运行多次结果一致）
+- [ ] 测试是否相互独立（不依赖执行顺序）
+- [ ] 是否避免了使用固定ID和固定数据
+- [ ] 是否清理了所有测试数据和Mock状态
+
+## 进一步阅读
+- 具体测试类型的实现：
+  - `04-conventions/controller.mdc`
+  - `04-conventions/service.mdc`
+  - `04-conventions/service-impl.mdc`
+  - `04-conventions/mapper.mdc`
+  - `04-conventions/entity.mdc`
+  - `04-conventions/utility.mdc`
+  - `04-conventions/validation.mdc`
+
+- 相关基础规则索引：
+  - 命名规则：`03-coding/naming.mdc`
+  - 代码风格：`03-coding/code-style.mdc`
+  - 编码实践：`03-coding/coding.mdc`

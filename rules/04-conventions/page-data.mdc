@@ -1,0 +1,60 @@
+---
+description: 定义分页数据类的编码标准，作为CommonResponse的data字段值类型，包含分页信息和数据列表
+globs: **/src/main/java/**/vo/response/PageData.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# PageData 编码约定
+
+## 固定代码
+以下代码是标准实现，不允许修改：
+
+```java
+package com.edu.soop.vo.response;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.util.List;
+
+/**
+ * 分页数据封装类
+ * 
+ * @author system
+ * @since 1.0.0
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@Builder
+@Schema(description = "分页数据封装类")
+public class PageData<T> {
+    
+    @Schema(description = "总条数", example = "100")
+    private Long total;
+    
+    @Schema(description = "当前页码", example = "1")
+    private Integer pageNumber;
+    
+    @Schema(description = "每页数量", example = "10")
+    private Integer pageSize;
+    
+    @Schema(description = "数据列表")
+    private List<T> list;
+}
+```
+
+## 使用说明
+- 直接复制上述代码到项目中
+- 不允许修改任何内容
+- 所有项目必须使用相同的实现
+
+## 相关规则
+- 响应封装: `04-conventions/common-response.mdc`
+- 分页请求: `04-conventions/common-page-request.mdc`

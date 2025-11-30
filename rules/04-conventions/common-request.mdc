@@ -1,0 +1,47 @@
+---
+description: 定义通用请求基类的编码标准，包括请求头、公共参数和基础验证规范
+globs: **/src/main/java/**/vo/request/CommonRequest.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# CommonRequest 编码约定
+
+## 固定代码
+以下代码是标准实现，不允许修改：
+
+```java
+package com.edu.soop.vo.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+/**
+ * 通用请求基类
+ * 
+ * @author system
+ * @since 1.0.0
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@Schema(description = "通用请求基类")
+public class CommonRequest {
+    
+    @Schema(description = "请求追踪ID（可选）", 
+            example = "createUser_20250127150000_123456")
+    private String traceId;
+}
+```
+
+## 使用说明
+- 直接复制上述代码到项目中
+- 不允许修改任何内容
+- 所有项目必须使用相同的实现
+
+## 相关规则
+- 分页请求: `04-conventions/common-page-request.mdc`

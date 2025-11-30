@@ -1,0 +1,123 @@
+---
+description: 规范ErrorCodeEnum枚举类的结构和实现要求
+globs: **/src/main/java/**/enums/ErrorCodeEnum.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# ErrorCodeEnum 编码约定
+
+## 适用范围
+定义错误码枚举类 `ErrorCodeEnum` 的具体实现规范，遵循通用枚举约定。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@Getter` 注解
+- 必须包含 `SUCCESS("0", "success")` 枚举值
+- 必须包含 `code` 和 `msg` 字段
+- 必须提供完整的构造器
+- 文件位置：`{package}.enums.ErrorCodeEnum`
+- 类名：必须是 `ErrorCodeEnum`
+
+### 禁止要求（MUST NOT）
+- 禁止使用其他类名（ErrorCode、ErrorCodes等）
+- 禁止放在 `constants/` 目录
+- 禁止修改 `SUCCESS` 的 code 和 msg
+- 禁止添加其他字段
+
+### 可选要求（MAY）
+- 可以添加 `fromCode(String)` 方法
+- 可以添加 JavaDoc 注释
+- 可以添加自定义方法
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 枚举值定义
+- 字段定义
+- 构造器
+- 方法实现
+
+### 完整实现模板
+```java
+package com.edu.soop.enums;
+
+import lombok.Getter;
+
+/**
+ * 错误码枚举
+ * 
+ * @author system
+ * @since 1.0.0
+ */
+@Getter
+public enum ErrorCodeEnum {
+    
+    // 成功码
+    SUCCESS("0", "success"),
+    
+    // 业务错误码 (1001B00000001-1001B00000999)
+    USERNAME_EXISTS("1001B00000001", "用户名已存在"),
+    USER_NOT_FOUND("1001B00000002", "用户不存在"),
+    
+    // 客户端错误码 (1001C00000001-1001C00000999)
+    VALIDATION_ERROR("1001C00000001", "参数校验失败"),
+    UNAUTHORIZED("1001C00000002", "未认证"),
+    
+    // 技术错误码 (1001T00000001-1001T00000999)
+    INTERNAL_ERROR("1001T00000001", "系统内部错误"),
+    DATABASE_ERROR("1001T00000002", "数据库操作失败");
+    
+    private final String code;
+    private final String msg;
+    
+    ErrorCodeEnum(String code, String msg) {
+        this.code = code;
+        this.msg = msg;
+    }
+    
+    /**
+     * 根据错误码查找枚举值
+     * 
+     * @param code 错误码
+     * @return 对应的枚举值
+     * @throws IllegalArgumentException 如果找不到对应的枚举值
+     */
+    public static ErrorCodeEnum fromCode(String code) {
+        for (ErrorCodeEnum errorCode : values()) {
+            if (errorCode.code.equals(code)) {
+                return errorCode;
+            }
+        }
+        throw new IllegalArgumentException("Invalid error code: " + code);
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@Getter` 注解
+- [ ] 是否包含了 `SUCCESS("0", "success")` 枚举值
+- [ ] 是否包含了 `code` 和 `msg` 字段
+- [ ] 是否提供了完整的构造器
+
+### 生成中检查
+- [ ] 是否按照分组顺序定义枚举值
+- [ ] 是否使用了正确的错误码格式
+- [ ] 是否添加了必要的注释
+- [ ] 是否包含了 `fromCode` 方法
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的枚举值
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 通用枚举: `04-conventions/enum.mdc`
+- 使用方: `04-conventions/common-response.mdc`

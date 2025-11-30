@@ -1,0 +1,71 @@
+---
+description: MySQL 数据库表结构设计规范，包括命名、字段、索引、主键、唯一键等设计标准
+globs: **/src/main/resources/sql/*.sql
+alwaysApply: true
+layer: L2
+allowedReferences: [L2, L3, L4]
+---
+
+# MySQL 表结构设计规范
+
+## 适用范围
+定义所有Spring Boot项目的数据库表结构设计标准，包括命名、字段、索引、主键等设计规范。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 表名必须使用小写字母和下划线，以 `t_` 开头
+- 每张表必须有主键，使用 `id BIGINT AUTO_INCREMENT`
+- 必须包含 `create_time` 和 `update_time` 审计字段
+- 关联字段必须添加普通索引
+- SQL脚本必须放在 `src/main/resources/sql/` 目录下
+- 建表语句文件名必须为 `schema.sql`
+- 初始化数据文件名必须为 `data.sql`
+- schema.sql 仅包含DDL语句，不包含任何INSERT、UPDATE、DELETE语句
+- data.sql 仅包含DML语句，必须与schema.sql分离
+- 生成的表数量必须与设计文档中定义的表数量完全一致，不能多也不能少
+- 必须先列出设计文档中的所有表清单，然后逐个生成
+- 如果因为功能原因，需要增加或删除表，必须和用户确认
+
+### 禁止要求（MUST NOT）
+- 禁止使用外键约束
+- 禁止使用MySQL保留字作为表名
+- 禁止使用 `SELECT *` 查询
+- 禁止在schema.sql中包含INSERT、UPDATE、DELETE语句
+- 禁止在data.sql中包含CREATE TABLE等DDL语句
+- 禁止添加CHECK约束
+
+### 可选要求（MAY）
+- 可以使用复合索引优化查询
+- 可以使用分区表处理大数据量
+- 可以使用数据校验机制
+- 可以在schema.sql中包含 `IF NOT EXISTS` 判断，避免重复创建
+- 可以在data.sql中使用 `ON DUPLICATE KEY UPDATE` 或类似机制避免重复插入
+
+## 表数量一致性检查
+
+### 生成前必须完成的检查
+1. **列出设计文档中的所有表**
+   - 仔细阅读设计文档的"数据库设计"章节
+   - 列出所有表名
+   - 确认表的总数量
+
+2. **制定表生成清单**
+   - 按设计文档顺序列出要生成的表
+   - 确保没有遗漏
+   - 确保没有额外添加
+
+3. **逐个生成CREATE TABLE语句**
+   - 按清单逐个生成
+   - 生成一个，核对一个
+
+### 生成后必须完成的验证
+- [ ] schema.sql中的表数量是否与设计文档中的数量一致
+- [ ] schema.sql中的所有表是否都在设计文档中有定义
+- [ ] 设计文档中的所有表是否都已生成
+- [ ] 是否存在额外生成的表（未在设计文档中定义）
+- [ ] 是否存在遗漏的表（设计文档中有但未生成）
+
+## 进一步阅读
+- 实体类规范：`04-conventions/entity.mdc`
+- Mapper 接口规范：`04-conventions/mapper.mdc`

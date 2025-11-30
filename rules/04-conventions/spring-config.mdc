@@ -1,0 +1,230 @@
+---
+description: 定义Spring Boot配置文件的编码标准，包括application.yml、环境配置、数据库配置和日志配置
+globs: **/src/main/resources/**/**.yml
+layer: L4
+allowedReferences: [L4]
+---
+
+# Spring Boot Configuration 编码约定
+
+## 适用范围
+定义Spring Boot配置文件（YAML格式）的实现规范，管理应用配置。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用YAML格式
+- 必须使用层次结构（YAML缩进）
+- 必须按功能模块分组
+- 敏感信息必须使用环境变量
+- 必须避免重复的键
+- 必须确保YAML语法正确
+- 必须按需配置（只配置实际使用的功能模块）
+- 位置：`src/main/resources/` 目录下
+
+### 禁止要求（MUST NOT）
+- 禁止将密码硬编码在配置文件中
+- 禁止使用不一致的缩进
+- 禁止缺少必要的配置项
+- 禁止使用重复的键
+- 禁止使用无效的YAML语法
+- 禁止在同一个文件中重复定义相同的配置项
+
+### 可选要求（MAY）
+- 可以使用环境变量覆盖
+- 可以提供默认值
+- 可以使用不同的环境配置文件
+- 可以使用YAML语法检查工具
+- 可以提供配置验证机制
+
+## YAML配置验证规则
+
+### 语法检查
+- **缩进一致性**：必须使用2个空格缩进
+- **键唯一性**：同一层级不能有重复的键
+- **值类型正确性**：确保值的类型与预期一致
+- **引号使用**：字符串值包含特殊字符时必须使用引号
+
+### 配置结构检查
+- **根级别配置**：spring、server、mybatis、logging等
+- **嵌套层级**：确保配置项的层级关系正确
+- **环境变量**：使用${VAR_NAME:default_value}格式
+- **注释规范**：使用#进行注释，保持简洁明了
+
+### 常见错误避免
+**错误示例**：
+```yaml
+# 错误：重复的键
+spring:
+  application:
+    name: app
+spring:  # 重复的spring键
+  datasource:
+    url: jdbc:mysql://localhost:3306/db
+```
+
+**正确示例**：
+```yaml
+# 正确：合并到同一个spring配置下
+spring:
+  application:
+    name: app
+  datasource:
+    url: jdbc:mysql://localhost:3306/db
+```
+
+## 完整代码模板
+
+### 文件结构
+- 主配置：`application.yml`
+- 开发环境：`application-dev.yml`
+- 生产环境：`application-prod.yml`
+- 测试环境：`application-test.yml`
+
+### 按需配置原则
+- **基础配置**：应用名、环境、端口等必需配置
+- **数据访问配置**：仅在使用MyBatis时配置
+- **安全配置**：仅在使用Spring Security时配置
+- **API文档配置**：仅在使用Swagger/OpenAPI时配置
+- **JWT配置**：仅在使用JWT认证时配置
+- **日志配置**：根据实际需求配置日志级别
+
+### 完整实现模板
+```yaml
+# application.yml - 基础配置（必需）
+spring:
+  application:
+    name: student-management-system
+  
+  profiles:
+    active: dev  # 激活的环境
+
+server:
+  port: 8080
+
+# 以下配置按需添加：
+
+# 数据访问配置（使用MyBatis时）
+# spring:
+#   datasource:
+#     driver-class-name: com.mysql.cj.jdbc.Driver
+#     url: jdbc:mysql://localhost:3306/soop?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+#     username: ${DB_USERNAME:root}
+#     password: ${DB_PASSWORD:password}
+#     hikari:
+#       minimum-idle: 5
+#       maximum-pool-size: 20
+#       connection-timeout: 30000
+# 
+# mybatis:
+#   configuration:
+#     map-underscore-to-camel-case: true
+#     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 安全配置（使用Spring Security时）
+# spring:
+#   security:
+#     user:
+#       name: admin
+#       password: admin123
+#       roles: ADMIN
+
+# JWT配置（使用JWT认证时）
+# jwt:
+#   secret: ${JWT_SECRET:your-secret-key}
+#   expiration: 604800000  # 7天（毫秒）
+
+# OpenAPI/Swagger配置（使用API文档时）
+# springdoc:
+#   api-docs:
+#     path: /v3/api-docs
+#   swagger-ui:
+#     path: /swagger-ui.html
+#     enabled: true
+
+# 日志配置（根据需要调整）
+# logging:
+#   level:
+#     root: INFO
+#     com.edu.soop: DEBUG
+#   pattern:
+#     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+```
+
+```yaml
+# application-dev.yml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/soop_dev
+    username: root
+    password: dev_password
+
+logging:
+  level:
+    com.edu.soop: DEBUG
+    org.springframework.web: DEBUG
+```
+
+```yaml
+# application-prod.yml
+spring:
+  datasource:
+    url: jdbc:mysql://prod-db:3306/soop_prod
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 50
+
+logging:
+  level:
+    root: WARN
+    com.edu.soop: INFO
+  file:
+    name: /var/log/soop/application.log
+```
+
+```yaml
+# application-test.yml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/soop_test
+    username: root
+    password: test_password
+
+logging:
+  level:
+    com.edu.soop: DEBUG
+    org.springframework.web: DEBUG
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了YAML格式
+- [ ] 是否使用了层次结构（YAML缩进）
+- [ ] 是否按功能模块分组
+- [ ] 敏感信息是否使用了环境变量
+- [ ] 是否避免了将密码硬编码在配置文件中
+- [ ] 是否检查了YAML语法正确性
+- [ ] 是否避免了重复的键
+- [ ] 是否按需配置（只配置实际使用的功能）
+
+### 生成中检查
+- [ ] 是否按照规范定义配置
+- [ ] 是否包含了必要的配置项
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+- [ ] 是否验证了YAML语法正确性
+- [ ] 是否确保了键的唯一性
+- [ ] 是否检查了配置结构完整性
+- [ ] 是否只配置了实际使用的功能模块
+- [ ] 是否将未使用的配置项注释掉
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的配置
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 启动类: `04-conventions/application.mdc`

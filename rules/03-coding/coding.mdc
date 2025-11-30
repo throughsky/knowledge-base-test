@@ -1,0 +1,49 @@
+---
+description: 编码实践规范（依赖注入、异常、日志、事务、性能、安全、API返回、组织、测试），适用于所有 Spring Boot 项目。
+globs:
+alwaysApply: true
+layer: L3
+allowedReferences: [L3, L4]
+---
+
+# 编码规范
+
+## 适用范围
+定义所有Spring Boot项目的编码实践规范，包括依赖注入、异常处理、日志记录、事务管理等。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@Autowired` 字段注入
+- 必须使用具体异常类型
+- 必须在关键入口、核心步骤、异常处记录日志
+- 必须使用 `@Valid` 进行输入校验
+- 必须使用统一返回结构（如 `CommonResponse<T>`）
+- 必须符合生产环境标准（可编译、可运行、可测试）
+
+### 禁止要求（MUST NOT）
+- 禁止使用TODO标记
+- 禁止简化实现
+- 禁止空catch
+- 禁止输出敏感信息
+
+### 可选要求（MAY）
+- 可以使用构造器注入（特殊场景）
+- 可以使用缓存优化性能
+- 可以使用卫语句减少嵌套
+- 可以使用AssertJ进行断言
+
+## 进一步阅读
+- 事务、日志、异常、切面：`04-conventions/logging-aspect.mdc`、`04-conventions/exception-handler.mdc`
+- Controller 返回与校验：`04-conventions/controller.mdc`、`04-conventions/validation.mdc`
+- Service/DAO 实践：`04-conventions/service.mdc`、`04-conventions/service-impl.mdc`、`04-conventions/mapper.mdc`
+- DTO/VO 设计：`04-conventions/request.mdc`、`04-conventions/response.mdc`
+- 实体与常量/枚举：`04-conventions/entity.mdc`、`04-conventions/constants.mdc`、`04-conventions/enum.mdc`
+- 应用配置与主类：`04-conventions/spring-config.mdc`、`04-conventions/application.mdc`
+- 工具类：`04-conventions/utility.mdc`
+
+## 相关基础规范
+- 命名规范：`03-coding/naming.mdc`
+- 代码风格：`03-coding/code-style.mdc`
+- 单元测试：`03-coding/testing.mdc`
+- 异常处理：`03-coding/exceptions.mdc`

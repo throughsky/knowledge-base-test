@@ -1,0 +1,64 @@
+---
+description: 定义通用分页请求基类的编码标准，包括分页参数、排序参数和查询条件规范
+globs: **/src/main/java/**/vo/request/CommonPageRequest.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# CommonPageRequest 编码约定
+
+## 固定代码
+以下代码是标准实现，不允许修改：
+
+```java
+package com.edu.soop.vo.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+/**
+ * 通用分页请求基类
+ * 
+ * @author system
+ * @since 1.0.0
+ */
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+@Schema(description = "通用分页请求基类")
+public abstract class CommonPageRequest extends CommonRequest {
+    
+    @Schema(description = "页码", example = "1", minimum = "1")
+    @NotNull(message = "页码不能为空")
+    @Min(value = 1, message = "页码最小为1")
+    private Integer pageNumber = 1;
+    
+    @Schema(description = "每页数量", example = "10", minimum = "1", maximum = "100")
+    @NotNull(message = "每页数量不能为空")
+    @Min(value = 1, message = "每页数量最小为1")
+    @Max(value = 100, message = "每页数量不能超过100")
+    private Integer pageSize = 10;
+    
+    @Schema(description = "排序字段", example = "createTime")
+    private String sortBy;
+    
+    @Schema(description = "排序方向", example = "asc", allowableValues = {"asc", "desc"})
+    private String sortDirection = "asc";
+}
+```
+
+## 使用说明
+- 直接复制上述代码到项目中
+- 不允许修改任何内容
+- 所有项目必须使用相同的实现
+
+## 相关规则
+- 父类: `04-conventions/common-request.mdc`
+- 分页响应: `04-conventions/page-data.mdc`

@@ -1,0 +1,133 @@
+---
+description: 定义服务接口的编码标准，包括接口设计、方法定义和业务逻辑规范
+globs: **/src/main/java/**/service/**Service.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# Service 编码约定
+
+## 适用范围
+定义业务逻辑服务接口的实现规范，定义业务操作的契约。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 接口名必须以 `Service` 结尾
+- 必须返回统一包装类型：`CommonResponse<T>`
+- 必须添加 JavaDoc 注释
+- 位置：`service` 包下
+
+### 禁止要求（MUST NOT）
+- 禁止直接操作数据库（交给Mapper）
+- 禁止处理HTTP请求（交给Controller）
+- 禁止在接口中包含实现逻辑
+- 禁止不带 `Service` 后缀
+
+### 可选要求（MAY）
+- 可以使用Request对象或基本类型作为参数
+- 可以使用分页响应：`CommonResponse<PageData<T>>`
+- 可以定义业务异常
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 接口声明
+- 方法定义
+
+### 完整实现模板
+```java
+package com.edu.soop.service;
+
+import com.edu.soop.vo.request.CreateUserRequest;
+import com.edu.soop.vo.request.SearchUserRequest;
+import com.edu.soop.vo.request.UpdateUserRequest;
+import com.edu.soop.vo.response.CommonResponse;
+import com.edu.soop.vo.response.PageData;
+import com.edu.soop.vo.response.UserResponse;
+
+/**
+ * 用户服务接口
+ * 负责用户管理相关的业务逻辑
+ *
+ * @author system
+ * @since 1.0.0
+ */
+public interface UserService {
+
+    /**
+     * 创建用户
+     *
+     * @param request 创建用户请求
+     * @return 创建成功的用户信息
+     */
+    CommonResponse<UserResponse> createUser(CreateUserRequest request);
+
+    /**
+     * 根据ID获取用户
+     *
+     * @param id 用户ID
+     * @return 用户信息
+     */
+    CommonResponse<UserResponse> getUserById(Long id);
+
+    /**
+     * 更新用户信息
+     *
+     * @param request 更新用户请求
+     * @return 更新结果
+     */
+    CommonResponse<UserResponse> updateUser(UpdateUserRequest request);
+
+    /**
+     * 删除用户
+     *
+     * @param id 用户ID
+     * @return 删除结果
+     */
+    CommonResponse<Void> deleteUserById(Long id);
+
+    /**
+     * 分页搜索用户
+     *
+     * @param request 搜索条件
+     * @return 分页用户列表
+     */
+    CommonResponse<PageData<UserResponse>> searchUsers(SearchUserRequest request);
+
+    /**
+     * 启用/禁用用户
+     *
+     * @param id 用户ID
+     * @param enabled 是否启用
+     * @return 操作结果
+     */
+    CommonResponse<Void> toggleUserStatus(Long id, Boolean enabled);
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 接口名是否以 `Service` 结尾
+- [ ] 是否返回统一包装类型：`CommonResponse<T>`
+- [ ] 是否添加了 JavaDoc 注释
+
+### 生成中检查
+- [ ] 是否按照规范定义方法
+- [ ] 是否包含了必要的业务方法
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的方法
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 实现类: `04-conventions/service-impl.mdc`
+- 请求对象: `04-conventions/request.mdc`
+- 响应对象: `04-conventions/response.mdc`

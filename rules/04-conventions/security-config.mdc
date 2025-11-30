@@ -1,0 +1,175 @@
+---
+description: 定义Spring Security配置类的编码标准，包括认证、授权、过滤链和公开路径配置
+globs: **/config/**SecurityConfig.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# SecurityConfig 编码约定
+
+## 适用范围
+定义Spring Security配置类的实现规范，用于配置应用的安全认证和授权策略。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@Configuration` 标记配置类
+- 必须使用 `@EnableWebSecurity` 启用Web安全
+- 必须使用 `@EnableMethodSecurity` 启用方法级安全
+- 类名必须为 `SecurityConfig`
+- 必须添加 JavaDoc 注释
+- 位置：`config` 包下
+- 必须配置 `PasswordEncoder` Bean
+- 必须配置 `SecurityFilterChain` Bean
+- **必须完整放行所有Swagger UI相关路径（避免403错误）**
+- 必须放行公开API路径（如 `/api/v1/auth/**`）
+
+### 禁止要求（MUST NOT）
+- 禁止缺少必要的注解
+- 禁止遗漏Swagger UI路径（导致文档无法访问）
+- 禁止硬编码敏感信息
+
+### 可选要求（MAY）
+- 可以配置JWT过滤器
+- 可以配置CORS策略
+- 可以配置自定义认证提供者
+- 可以配置自定义访问决策管理器
+
+## Swagger UI路径放行规范
+
+### 必需放行的路径清单
+以下路径**必须全部放行**，缺一不可：
+
+| 路径 | 说明 | 缺失后果 |
+|-----|------|---------|
+| `/swagger-ui.html` | Swagger UI入口（兼容旧版） | 无法访问Swagger首页 |
+| `/swagger-ui/**` | Swagger UI静态资源 | UI无法加载CSS/JS |
+| `/v3/api-docs/**` | OpenAPI 3规范JSON | API文档数据缺失 |
+| `/swagger-resources/**` | Swagger资源（兼容性） | 部分功能不可用 |
+| `/webjars/**` | WebJars依赖资源 | 第三方库加载失败 |
+
+### 错误示例（不完整）
+```java
+// ❌ 错误：只放行了部分路径
+.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+// 缺少：/swagger-ui.html、/swagger-resources/**、/webjars/**
+```
+
+### 正确示例（完整）
+```java
+// ✅ 正确：完整放行所有Swagger UI路径
+.requestMatchers(
+        "/swagger-ui.html",      // Swagger UI入口
+        "/swagger-ui/**",        // Swagger UI资源
+        "/v3/api-docs/**",       // OpenAPI JSON
+        "/swagger-resources/**", // Swagger资源
+        "/webjars/**"            // WebJars依赖
+).permitAll()
+```
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- PasswordEncoder配置
+- SecurityFilterChain配置
+
+### 完整实现模板
+```java
+package com.edu.soop.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+/**
+ * Spring Security配置类
+ * 配置安全认证和授权
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    /**
+     * 密码编码器
+     *
+     * @return BCrypt密码编码器
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * 安全过滤链配置
+     *
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     * @throws Exception 配置异常
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                // 禁用CSRF（使用JWT不需要）
+                .csrf(csrf -> csrf.disable())
+                // 无状态会话
+                .sessionManagement(session -> 
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 授权配置
+                .authorizeHttpRequests(auth -> auth
+                        // 公开接口
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        // ⚠️ Swagger UI 相关路径（必须完整放行）
+                        .requestMatchers(
+                                "/swagger-ui.html",      // Swagger UI入口
+                                "/swagger-ui/**",        // Swagger UI资源
+                                "/v3/api-docs/**",       // OpenAPI JSON
+                                "/swagger-resources/**", // Swagger资源
+                                "/webjars/**"            // WebJars依赖
+                        ).permitAll()
+                        // 其他接口需要认证
+                        .anyRequest().authenticated()
+                );
+
+        return http.build();
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@Configuration`、`@EnableWebSecurity`、`@EnableMethodSecurity`
+- [ ] 类名是否为 `SecurityConfig`
+- [ ] 是否添加了 JavaDoc 注释
+- [ ] 是否避免了缺少必要的注解
+
+### 生成中检查
+- [ ] 是否配置了 `PasswordEncoder` Bean
+- [ ] 是否配置了 `SecurityFilterChain` Bean
+- [ ] **是否完整放行所有5个Swagger UI路径**
+- [ ] 是否放行了公开API路径
+- [ ] 是否遵循命名规范
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否可以正常访问 `http://localhost:8080/swagger-ui.html`
+- [ ] 是否可以正常访问 `/api/v1/auth/**` 等公开接口
+- [ ] 是否符合命名规范
+
+## 相关规则
+- OpenAPI配置: `04-conventions/openapi-config.mdc`
+- 应用配置: `04-conventions/spring-config.mdc`
+- 技术栈: `01-structure/tech-stack.mdc`

@@ -1,0 +1,57 @@
+---
+description: 代码风格规范（格式化、导入顺序、注释、布局），适用于所有 Spring Boot 项目。
+globs:
+alwaysApply: true
+layer: L3
+allowedReferences: [L3, L4]
+---
+
+# 代码格式规范
+
+## 适用范围
+定义所有Spring Boot项目的代码格式规范，包括缩进、导入、注释和布局。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 所有Java代码必须使用4个空格缩进
+- 必须使用K&R风格大括号（左大括号与声明同一行）
+- 必须使用JavaDoc注释公共类、公共/受保护方法、对外API
+- 必须按标准顺序排列导入语句
+- 必须移除未使用的import
+
+### 禁止要求（MUST NOT）
+- 禁止使用Tab、2个空格、8个空格缩进
+- 禁止使用通配符`*`导入
+- 禁止深层嵌套（>3层）
+- 禁止使用魔法数字/字符串
+
+### 可选要求（MAY）
+- 行宽建议不超过120字符
+- 可以使用语义分组空行
+- 可以使用卫语句提前返回
+
+## 进一步阅读
+- 具体代码类型的风格与布局：
+  - `04-conventions/controller.mdc`
+  - `04-conventions/service.mdc`
+  - `04-conventions/service-impl.mdc`
+  - `04-conventions/mapper.mdc`
+  - `04-conventions/entity.mdc`
+  - `04-conventions/request.mdc`
+  - `04-conventions/response.mdc`
+  - `04-conventions/exception.mdc`
+  - `04-conventions/exception-handler.mdc`
+  - `04-conventions/utility.mdc`
+  - `04-conventions/validation.mdc`
+  - `04-conventions/logging-aspect.mdc`
+  - `04-conventions/application.mdc`
+  - `04-conventions/spring-config.mdc`
+  - `04-conventions/task.mdc`
+  - `04-conventions/constants.mdc`
+  - `04-conventions/enum.mdc`
+  - `04-conventions/gradle.mdc`
+
+- 相关基础规则索引：
+  - 命名规则：`03-coding/naming.mdc`
+  - 编码实践：`03-coding/coding.mdc`

@@ -1,0 +1,174 @@
+---
+description: 定义全局异常处理器的编码标准，包括异常映射、错误码输出和日志规范
+globs: **/src/main/java/**/exception/GlobalExceptionHandler.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# ExceptionHandler 编码约定
+
+## 适用范围
+定义全局异常处理器的实现规范，统一处理所有未捕获异常并返回标准响应。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@RestControllerAdvice` 注解
+- 必须使用 `@Slf4j` 注解启用日志
+- 类名必须为 `GlobalExceptionHandler`
+- 必须使用 `@ExceptionHandler` 注解处理特定异常
+- 必须返回 `CommonResponse<Void>`
+- 必须记录错误日志（ERROR级别）
+- 必须添加 JavaDoc 注释
+- 位置：`exception` 包下
+
+### 禁止要求（MUST NOT）
+- 禁止在异常处理器中包含业务逻辑
+- 禁止记录敏感信息
+- 禁止在生产环境暴露堆栈信息
+- 禁止使用其他类名
+
+### 可选要求（MAY）
+- 可以使用 `@ResponseStatus` 指定HTTP状态码
+- 可以根据异常类型返回合适的HTTP状态码
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 异常处理方法
+
+### 完整实现模板
+```java
+package com.edu.soop.exception;
+
+import com.edu.soop.enums.ErrorCodeEnum;
+import com.edu.soop.vo.response.CommonResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
+
+/**
+ * 全局异常处理器
+ * 统一处理所有未捕获异常并返回标准响应
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@RestControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+
+    /**
+     * 业务异常处理
+     *
+     * @param e 业务异常
+     * @return 错误响应
+     */
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public CommonResponse<Void> handleBusinessException(BusinessException e) {
+        log.error("业务异常: code={}, msg={}", e.getCode(), e.getMsg());
+        return CommonResponse.error(e.getCode(), e.getMsg());
+    }
+
+    /**
+     * 参数校验异常处理
+     *
+     * @param e 参数校验异常
+     * @return 错误响应
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public CommonResponse<Void> handleValidationException(MethodArgumentNotValidException e) {
+        String errorMsg = e.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(fieldError -> fieldError.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+
+        log.error("参数校验失败: {}", errorMsg);
+        return CommonResponse.error(
+                ErrorCodeEnum.VALIDATION_ERROR.getCode(),
+                errorMsg
+        );
+    }
+
+    /**
+     * 认证异常处理
+     *
+     * @param e 认证异常
+     * @return 错误响应
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public CommonResponse<Void> handleAuthenticationException(AuthenticationException e) {
+        log.error("认证失败: {}", e.getMessage());
+        return CommonResponse.error(ErrorCodeEnum.UNAUTHORIZED);
+    }
+
+    /**
+     * 权限不足异常处理
+     *
+     * @param e 权限不足异常
+     * @return 错误响应
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public CommonResponse<Void> handleAccessDeniedException(AccessDeniedException e) {
+        log.error("权限不足: {}", e.getMessage());
+        return CommonResponse.error(ErrorCodeEnum.FORBIDDEN);
+    }
+
+    /**
+     * 系统异常处理（兜底）
+     *
+     * @param e 系统异常
+     * @return 错误响应
+     */
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public CommonResponse<Void> handleException(Exception e) {
+        log.error("系统异常", e);  // 记录完整堆栈
+        return CommonResponse.error(
+                ErrorCodeEnum.INTERNAL_ERROR.getCode(),
+                "系统内部错误"  // 不暴露具体异常信息
+        );
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@RestControllerAdvice` 注解
+- [ ] 是否使用了 `@Slf4j` 注解启用日志
+- [ ] 类名是否为 `GlobalExceptionHandler`
+- [ ] 是否使用了 `@ExceptionHandler` 注解
+- [ ] 是否添加了 JavaDoc 注释
+
+### 生成中检查
+- [ ] 是否按照规范定义异常处理方法
+- [ ] 是否包含了必要的异常处理
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的异常处理方法
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 异常类: `04-conventions/exception.mdc`
+- 错误码: `04-conventions/error-code-enum.mdc`
+- 响应格式: `04-conventions/common-response.mdc`

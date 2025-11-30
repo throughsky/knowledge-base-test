@@ -1,0 +1,204 @@
+---
+description: 定义RestController类的编码标准，包括API路由映射、HTTP方法注解、依赖注入和错误处理
+globs: **/src/main/java/**/controller/**Controller.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# Controller 编码约定
+
+## 适用范围
+定义REST控制器类的实现规范，负责HTTP请求路由、参数接收和响应返回。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@RestController` 注解
+- 必须使用 `@Schema` 注解（类和方法）
+- 类名必须以 `Controller` 结尾
+- 必须使用 `@RequestMapping("/api/v1/{resource}")` 定义基础路径
+- 必须使用 `@Autowired` 字段注入依赖
+- 必须统一返回 `CommonResponse<T>`
+- 必须添加 JavaDoc 注释
+- 位置：`controller` 包下
+- 必须严格按照设计文档中定义的API路径、HTTP方法、请求参数、响应结构生成代码
+- 如果需要删除、修改或新增接口，必须先列出变更清单并与用户确认
+
+### 禁止要求（MUST NOT）
+- 禁止使用 PUT/PATCH/DELETE 注解
+- 禁止包含业务逻辑
+- 禁止处理业务异常（由GlobalExceptionHandler处理）
+- 禁止直接返回实体或VO
+- 禁止方法长度超过20行
+
+### 可选要求（MAY）
+- 可以使用 `@GetMapping` 和 `@PostMapping`
+- 可以使用 `@Valid @RequestBody` 进行参数校验
+- 可以使用 `@Operation` 注解说明接口功能
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 依赖注入
+- 方法定义
+- Schema注解
+
+### 完整实现模板
+```java
+package com.edu.soop.controller;
+
+import com.edu.soop.service.UserService;
+import com.edu.soop.vo.request.CreateUserRequest;
+import com.edu.soop.vo.request.SearchUserRequest;
+import com.edu.soop.vo.request.UpdateUserRequest;
+import com.edu.soop.vo.response.CommonResponse;
+import com.edu.soop.vo.response.PageData;
+import com.edu.soop.vo.response.UserResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * 用户控制器
+ * 负责用户管理相关的HTTP请求处理
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@RestController
+@RequestMapping("/api/v1/users")
+@Tag(name = "用户管理", description = "用户管理相关接口")
+@Schema(description = "用户控制器")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    /**
+     * 创建用户
+     *
+     * @param request 创建用户请求
+     * @return 创建结果
+     */
+    @PostMapping("/create")
+    @Operation(summary = "创建用户", description = "创建新用户")
+    @Schema(description = "创建用户")
+    public CommonResponse<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
+        return userService.createUser(request);
+    }
+
+    /**
+     * 根据ID获取用户
+     *
+     * @param id 用户ID
+     * @return 用户信息
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "获取用户", description = "根据ID获取用户信息")
+    @Schema(description = "根据ID获取用户")
+    public CommonResponse<UserResponse> getUserById(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
+    /**
+     * 更新用户信息
+     *
+     * @param request 更新用户请求
+     * @return 更新结果
+     */
+    @PostMapping("/update")
+    @Operation(summary = "更新用户", description = "更新用户信息")
+    @Schema(description = "更新用户信息")
+    public CommonResponse<UserResponse> updateUser(@Valid @RequestBody UpdateUserRequest request) {
+        return userService.updateUser(request);
+    }
+
+    /**
+     * 删除用户
+     *
+     * @param id 用户ID
+     * @return 删除结果
+     */
+    @PostMapping("/delete/{id}")
+    @Operation(summary = "删除用户", description = "删除指定用户")
+    @Schema(description = "删除用户")
+    public CommonResponse<Void> deleteUser(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable Long id) {
+        return userService.deleteUserById(id);
+    }
+
+    /**
+     * 分页搜索用户
+     *
+     * @param request 搜索条件
+     * @return 分页用户列表
+     */
+    @PostMapping("/search")
+    @Operation(summary = "搜索用户", description = "分页搜索用户列表")
+    @Schema(description = "分页搜索用户")
+    public CommonResponse<PageData<UserResponse>> searchUsers(@Valid @RequestBody SearchUserRequest request) {
+        return userService.searchUsers(request);
+    }
+
+    /**
+     * 启用/禁用用户
+     *
+     * @param id 用户ID
+     * @param enabled 是否启用
+     * @return 操作结果
+     */
+    @PostMapping("/toggle-status/{id}")
+    @Operation(summary = "切换用户状态", description = "启用或禁用用户")
+    @Schema(description = "启用/禁用用户")
+    public CommonResponse<Void> toggleUserStatus(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "是否启用", required = true)
+            @RequestParam Boolean enabled) {
+        return userService.toggleUserStatus(id, enabled);
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@RestController` 注解
+- [ ] 是否使用了 `@Schema` 注解（类和方法）
+- [ ] 类名是否以 `Controller` 结尾
+- [ ] 是否使用了 `@RequestMapping` 定义基础路径
+- [ ] 是否使用了 `@Autowired` 字段注入
+- [ ] 是否添加了 JavaDoc 注释
+- [ ] 是否已仔细阅读设计文档中的API定义
+- [ ] 是否确认了每个API的路径、方法、参数、响应
+
+### 生成中检查
+- [ ] 是否按照规范定义方法
+- [ ] 是否包含了必要的HTTP方法注解
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的方法
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+- [ ] API路径是否与设计文档完全一致
+- [ ] HTTP方法是否与设计文档完全一致
+- [ ] 请求参数是否与设计文档完全一致
+- [ ] 响应结构是否与设计文档完全一致
+
+## 相关规则
+- 请求对象: `04-conventions/request.mdc`
+- 响应对象: `04-conventions/response.mdc`
+- 异常处理: `04-conventions/exception-handler.mdc`

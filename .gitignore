@@ -1,0 +1,75 @@
+# 知识库仓库的Git忽略配置文件
+
+# macOS系统文件
+.DS_Store
+.AppleDouble
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE配置文件
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 临时文件和备份文件
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+
+# 编辑器自动保存
+*#
+.#*
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# 操作系统生成的文件
+Thumbs.db
+Desktop.ini
+
+# 私人笔记和个人文件（不应分享）
+private/
+personal/
+notes/
+
+# 临时导出的文档
+exports/
+output/
+dist/
+build/
+
+# 本地配置文件
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 不应提交的文档状态
+*.draft.md
+*.wip.md
+
+# 大文件（应考虑使用Git LFS）
+*.psd
+*.ai
+*.sketch
+*.fig
+
+# 压缩包
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# 可以保留的例子模板文件（可根据需求决定是否忽略）
+# examples/
+# templates/

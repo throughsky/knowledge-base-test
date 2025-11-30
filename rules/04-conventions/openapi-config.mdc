@@ -1,0 +1,173 @@
+---
+description: 定义OpenAPI配置类的编码标准，包括Swagger UI配置、API文档配置和接口分组
+globs: **/config/**OpenApiConfig.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# OpenApiConfig 编码约定
+
+## 适用范围
+定义OpenAPI（Swagger）配置类的实现规范，用于生成API文档和提供Swagger UI访问。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@Configuration` 标记配置类
+- 类名必须为 `OpenApiConfig`
+- 必须添加 JavaDoc 注释
+- 位置：`config` 包下
+- 必须使用 Springdoc OpenAPI 3.x
+- 必须根据设计文档中的业务模块生成对应的API分组
+- 必须包含"all"分组（路径为`/api/v1/**`），用于显示所有API
+
+### 禁止要求（MUST NOT）
+- 禁止缺少API基本信息配置
+- 禁止缺少安全配置
+- 禁止缺少必要的注解
+
+### 可选要求（MAY）
+- 可以配置自定义路径过滤
+- 可以配置全局响应示例
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 方法定义
+
+### 完整实现模板
+```java
+package com.edu.soop.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.Components;
+import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * OpenAPI配置类
+ * 配置Swagger UI和API文档
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Configuration
+public class OpenApiConfig {
+
+    /**
+     * 配置OpenAPI基本信息
+     *
+     * @return OpenAPI配置
+     */
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("学生管理系统 API")
+                        .description("学生管理系统后端接口文档")
+                        .version("1.0.0")
+                        .contact(new Contact()
+                                .name("开发团队")
+                                .email("dev@example.com")))
+                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+                .components(new Components()
+                        .addSecuritySchemes("Bearer Authentication",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                                        .description("请输入JWT令牌")));
+    }
+
+    /**
+     * 配置公开API分组
+     *
+     * @return 公开API分组
+     */
+    @Bean
+    public GroupedOpenApi publicApi() {
+        return GroupedOpenApi.builder()
+                .group("public")
+                .pathsToMatch("/api/v1/auth/**")
+                .build();
+    }
+
+    /**
+     * 配置用户API分组
+     *
+     * @return 用户API分组
+     */
+    @Bean
+    public GroupedOpenApi userApi() {
+        return GroupedOpenApi.builder()
+                .group("user")
+                .pathsToMatch("/api/v1/users/**")
+                .build();
+    }
+
+    /**
+     * 配置课程API分组
+     *
+     * @return 课程API分组
+     */
+    @Bean
+    public GroupedOpenApi courseApi() {
+        return GroupedOpenApi.builder()
+                .group("course")
+                .pathsToMatch("/api/v1/courses/**")
+                .build();
+    }
+
+    /**
+     * 配置所有API分组
+     *
+     * @return 所有API分组
+     */
+    @Bean
+    public GroupedOpenApi allApi() {
+        return GroupedOpenApi.builder()
+                .group("all")
+                .pathsToMatch("/api/v1/**")
+                .build();
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@Configuration` 标记配置类
+- [ ] 类名是否为 `OpenApiConfig`
+- [ ] 是否添加了 JavaDoc 注释
+- [ ] 是否避免了缺少API基本信息配置
+- [ ] 是否避免了缺少安全配置
+- [ ] 是否已识别设计文档中的所有业务模块
+
+### 生成中检查
+- [ ] 是否按照规范定义配置
+- [ ] 是否包含了必要的配置项
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+- [ ] 是否为每个业务模块生成了API分组
+- [ ] 是否包含了"all"分组
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的配置
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+- [ ] 在Swagger UI中是否可以看到所有业务模块分组
+
+## 相关规则
+- 控制器注解: `04-conventions/controller.mdc`
+- 应用配置: `04-conventions/spring-config.mdc`
+- 安全配置: `04-conventions/security-config.mdc`

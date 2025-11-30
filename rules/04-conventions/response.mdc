@@ -1,0 +1,116 @@
+---
+description: 定义响应类的编码标准，包括响应对象、分页响应和数据封装
+globs: **/src/main/java/**/vo/response/**/**Response.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# Response 编码约定
+
+## 适用范围
+定义具体响应类的实现规范，作为 `CommonResponse<T>` 的data字段类型。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@Data` 注解
+- 必须使用 `@NoArgsConstructor` 注解
+- 必须使用 `@Accessors(chain = true)` 注解
+- 类名必须以 `Response` 结尾
+- 必须添加 JavaDoc 注释
+- 位置：`vo.response` 包下
+
+### 禁止要求（MUST NOT）
+- 禁止包含code和msg字段（这些属于CommonResponse）
+- 禁止继承CommonResponse
+- 禁止暴露敏感信息（密码、内部ID）
+- 禁止不带 `Response` 后缀
+
+### 可选要求（MAY）
+- 可以使用 `@Builder` 注解建造者模式
+- 可以使用 `@Schema` 注解提供API文档
+- 可以嵌套其他Response对象
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 字段定义
+
+### 完整实现模板
+```java
+package com.edu.soop.vo.response;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.time.LocalDateTime;
+
+/**
+ * 用户响应对象
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Accessors(chain = true)
+@Schema(description = "用户响应对象")
+public class UserResponse {
+
+    @Schema(description = "用户ID", example = "1")
+    private Long id;
+
+    @Schema(description = "用户名", example = "john_doe")
+    private String username;
+
+    @Schema(description = "邮箱", example = "john@example.com")
+    private String email;
+
+    @Schema(description = "角色", example = "STUDENT")
+    private String role;
+
+    @Schema(description = "是否启用", example = "true")
+    private Boolean isEnabled;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updateTime;
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@Data` 注解
+- [ ] 是否使用了 `@NoArgsConstructor` 注解
+- [ ] 是否使用了 `@Accessors(chain = true)` 注解
+- [ ] 类名是否以 `Response` 结尾
+- [ ] 是否添加了 JavaDoc 注释
+
+### 生成中检查
+- [ ] 是否按照规范定义字段
+- [ ] 是否包含了必要的数据字段
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的字段
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 响应封装: `04-conventions/common-response.mdc`
+- 分页数据: `04-conventions/page-data.mdc`
+- 控制器: `04-conventions/controller.mdc`

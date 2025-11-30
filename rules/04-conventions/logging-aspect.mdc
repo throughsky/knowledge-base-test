@@ -1,0 +1,165 @@
+---
+description: 定义日志切面类的编码标准，包括AOP切面设计、日志记录、性能监控和异常处理规范
+globs: **/src/main/java/**/aspect/WebLogAspect.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# LoggingAspect 编码约定
+
+## 适用范围
+定义AOP日志切面的实现规范，用于统一记录Controller层的请求、响应和异常信息。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@Aspect` 注解标记切面
+- 必须使用 `@Component` 注解注册为Spring组件
+- 必须使用 `@Slf4j` 注解启用日志
+- 必须使用 `@Pointcut` 定义切点表达式
+- 类名必须为 `WebLogAspect` 或 `LoggingAspect`
+- 必须添加 JavaDoc 注释
+- 位置：`aspect` 包下
+
+### 禁止要求（MUST NOT）
+- 禁止记录敏感信息（密码、token）
+- 禁止序列化循环引用对象
+- 禁止记录大文件内容
+- 禁止缺少ThreadLocal清理
+
+### 可选要求（MAY）
+- 可以使用 `@Before`、`@Around`、`@AfterThrowing` 等通知类型
+- 可以使用ThreadLocal记录执行时间
+- 可以自定义日志格式
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 切点定义
+- 通知方法
+
+### 完整实现模板
+```java
+package com.edu.soop.aspect;
+
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+
+/**
+ * Web请求日志切面
+ * 统一记录Controller层的请求、响应和异常信息
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Aspect
+@Component
+@Slf4j
+public class WebLogAspect {
+
+    private static final ThreadLocal<Long> TIME_THREADLOCAL = new ThreadLocal<>();
+
+    /**
+     * 定义切点：拦截Controller层所有公共方法
+     */
+    @Pointcut("execution(public * com.edu.soop.controller..*.*(..))")
+    public void webLog() {
+    }
+
+    /**
+     * 前置通知：记录请求信息
+     *
+     * @param joinPoint 连接点
+     */
+    @Before("webLog()")
+    public void doBefore(JoinPoint joinPoint) {
+        TIME_THREADLOCAL.set(System.currentTimeMillis());
+
+        ServletRequestAttributes attributes = 
+            (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            
+            log.info("========== 请求开始 ==========");
+            log.info("URL            : {}", request.getRequestURL().toString());
+            log.info("HTTP Method    : {}", request.getMethod());
+            log.info("IP             : {}", request.getRemoteAddr());
+            log.info("Class Method   : {}.{}", 
+                joinPoint.getSignature().getDeclaringTypeName(),
+                joinPoint.getSignature().getName());
+            log.info("Args           : {}", Arrays.toString(joinPoint.getArgs()));
+        }
+    }
+
+    /**
+     * 后置通知：记录响应信息
+     *
+     * @param result 返回值
+     */
+    @AfterReturning(pointcut = "webLog()", returning = "result")
+    public void doAfterReturning(Object result) {
+        Long startTime = TIME_THREADLOCAL.get();
+        if (startTime != null) {
+            long timeCost = System.currentTimeMillis() - startTime;
+            log.info("Response       : {}", result);
+            log.info("Time Cost      : {} ms", timeCost);
+            log.info("========== 请求结束 ==========");
+        }
+        
+        // 清理ThreadLocal避免内存泄漏
+        TIME_THREADLOCAL.remove();
+    }
+
+    /**
+     * 异常通知：记录异常信息
+     *
+     * @param joinPoint 连接点
+     * @param ex 异常
+     */
+    @AfterThrowing(pointcut = "webLog()", throwing = "ex")
+    public void doAfterThrowing(JoinPoint joinPoint, Throwable ex) {
+        log.error("========== 异常 ==========");
+        log.error("Exception Class: {}", ex.getClass().getName());
+        log.error("Exception Msg  : {}", ex.getMessage());
+        
+        // 清理ThreadLocal避免内存泄漏
+        TIME_THREADLOCAL.remove();
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@Aspect` 注解标记切面
+- [ ] 是否使用了 `@Component` 注解注册为Spring组件
+- [ ] 是否使用了 `@Slf4j` 注解启用日志
+- [ ] 是否使用了 `@Pointcut` 定义切点表达式
+- [ ] 类名是否为 `WebLogAspect` 或 `LoggingAspect`
+- [ ] 是否添加了 JavaDoc 注释
+
+### 生成中检查
+- [ ] 是否按照规范定义切点表达式
+- [ ] 是否包含了必要的通知方法
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的通知方法
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 控制器: `04-conventions/controller.mdc`

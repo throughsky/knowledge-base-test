@@ -1,0 +1,144 @@
+---
+description: 定义验证类的编码标准，包括自定义验证器、验证注解和验证逻辑规范
+globs: **/src/main/java/**/validation/**.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# Validation 编码约定
+
+## 适用范围
+定义自定义验证器的实现规范，扩展Bean Validation标准验证功能。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 注解必须使用 `@Target` 指定作用目标
+- 注解必须使用 `@Retention(RUNTIME)` 运行时保留
+- 注解必须使用 `@Constraint(validatedBy = XxxValidator.class)` 关联验证器
+- 验证器类必须实现 `ConstraintValidator<注解, 类型>`
+- 验证器类名必须以 `Validator` 结尾
+- 必须添加 JavaDoc 注释
+- 位置：`validation` 包下
+
+### 禁止要求（MUST NOT）
+- 禁止在验证逻辑中抛出异常
+- 禁止在 `isValid()` 方法中进行I/O操作
+- 禁止缺少必要的注解方法
+
+### 可选要求（MAY）
+- 可以提供 `initialize()` 方法初始化
+- 可以缓存验证结果
+- 可以支持国际化消息
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 注解定义
+- 验证器类定义
+
+### 完整实现模板
+```java
+package com.edu.soop.validation;
+
+import jakarta.validation.Constraint;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.Payload;
+import lombok.extern.slf4j.Slf4j;
+
+import java.lang.annotation.*;
+import java.util.regex.Pattern;
+
+/**
+ * 手机号验证注解
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Constraint(validatedBy = PhoneValidator.class)
+@Documented
+public @interface Phone {
+
+    /**
+     * 验证失败消息
+     */
+    String message() default "手机号格式不正确";
+
+    /**
+     * 验证分组
+     */
+    Class<?>[] groups() default {};
+
+    /**
+     * 负载
+     */
+    Class<? extends Payload>[] payload() default {};
+}
+
+/**
+ * 手机号验证器
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Slf4j
+public class PhoneValidator implements ConstraintValidator<Phone, String> {
+
+    private static final String PHONE_PATTERN = "^1[3-9]\\d{9}$";
+    private Pattern pattern;
+
+    @Override
+    public void initialize(Phone constraintAnnotation) {
+        // 编译正则表达式（只编译一次）
+        pattern = Pattern.compile(PHONE_PATTERN);
+    }
+
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        // null值由@NotNull处理，这里返回true
+        if (value == null) {
+            return true;
+        }
+
+        // 验证格式
+        boolean valid = pattern.matcher(value).matches();
+
+        if (!valid) {
+            log.debug("手机号验证失败: {}", value);
+        }
+
+        return valid;
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 注解是否使用了 `@Target` 指定作用目标
+- [ ] 注解是否使用了 `@Retention(RUNTIME)` 运行时保留
+- [ ] 注解是否使用了 `@Constraint` 关联验证器
+- [ ] 验证器类是否实现了 `ConstraintValidator` 接口
+- [ ] 验证器类名是否以 `Validator` 结尾
+- [ ] 是否添加了 JavaDoc 注释
+
+### 生成中检查
+- [ ] 是否按照规范定义验证逻辑
+- [ ] 是否包含了必要的验证方法
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的验证逻辑
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 请求对象: `04-conventions/request.mdc`
+- 异常处理: `04-conventions/exception-handler.mdc`

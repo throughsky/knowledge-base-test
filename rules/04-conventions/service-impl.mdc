@@ -1,0 +1,265 @@
+---
+description: 定义服务实现类的编码标准，包括依赖注入、事务管理、日志记录和业务逻辑实现
+globs: **/src/main/java/**/service/impl/**ServiceImpl.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# ServiceImpl 编码约定
+
+## 适用范围
+定义业务逻辑服务实现类的规范，实现Service接口中定义的业务操作。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@Service` 注解
+- 类名必须以 `ServiceImpl` 结尾
+- 必须使用 `@Autowired` 字段注入
+- 必须使用 `@Slf4j` 注解启用日志
+- 必须添加 JavaDoc 注释
+- 位置：`service.impl` 包下
+
+### 禁止要求（MUST NOT）
+- 禁止使用构造器注入（除非明确说明）
+- 禁止同类内部自调用导致事务失效
+- 禁止记录敏感信息（密码、token）
+- 禁止空catch块
+
+### 可选要求（MAY）
+- 可以使用 `@Transactional` 标记事务方法
+- 可以使用 `@Transactional(readOnly = true)` 标记只读操作
+- 可以使用 `@Async` 进行异步处理
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 依赖注入
+- 方法实现
+
+### 完整实现模板
+```java
+package com.edu.soop.service.impl;
+
+import com.edu.soop.entity.UserEntity;
+import com.edu.soop.enums.ErrorCodeEnum;
+import com.edu.soop.exception.BusinessException;
+import com.edu.soop.mapper.UserMapper;
+import com.edu.soop.service.UserService;
+import com.edu.soop.vo.request.CreateUserRequest;
+import com.edu.soop.vo.request.SearchUserRequest;
+import com.edu.soop.vo.request.UpdateUserRequest;
+import com.edu.soop.vo.response.CommonResponse;
+import com.edu.soop.vo.response.PageData;
+import com.edu.soop.vo.response.UserResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * 用户服务实现类
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Service
+@Slf4j
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Override
+    @Transactional
+    public CommonResponse<UserResponse> createUser(CreateUserRequest request) {
+        log.info("创建用户开始, username={}", request.getUsername());
+
+        // 1. 参数验证
+        UserEntity existing = userMapper.findByUsername(request.getUsername());
+        if (existing != null) {
+            throw new BusinessException(ErrorCodeEnum.USERNAME_EXISTS);
+        }
+
+        // 2. 业务处理
+        UserEntity entity = UserEntity.builder()
+                .username(request.getUsername())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .email(request.getEmail())
+                .role(request.getRole())
+                .isEnabled(true)
+                .createTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())
+                .build();
+
+        // 3. 数据持久化
+        userMapper.insert(entity);
+
+        // 4. 组装响应
+        UserResponse response = convertToResponse(entity);
+
+        log.info("创建用户成功, userId={}", entity.getId());
+        return CommonResponse.success(response);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CommonResponse<UserResponse> getUserById(Long id) {
+        UserEntity entity = userMapper.findById(id);
+        if (entity == null) {
+            throw new BusinessException(ErrorCodeEnum.USER_NOT_FOUND);
+        }
+        return CommonResponse.success(convertToResponse(entity));
+    }
+
+    @Override
+    @Transactional
+    public CommonResponse<UserResponse> updateUser(UpdateUserRequest request) {
+        log.info("更新用户开始, userId={}", request.getId());
+
+        // 1. 参数验证
+        UserEntity existing = userMapper.findById(request.getId());
+        if (existing == null) {
+            throw new BusinessException(ErrorCodeEnum.USER_NOT_FOUND);
+        }
+
+        // 2. 业务处理
+        existing.setEmail(request.getEmail());
+        existing.setUpdateTime(LocalDateTime.now());
+
+        // 3. 数据持久化
+        userMapper.updateEnabled(request.getId(), existing.getIsEnabled());
+
+        // 4. 组装响应
+        UserResponse response = convertToResponse(existing);
+
+        log.info("更新用户成功, userId={}", request.getId());
+        return CommonResponse.success(response);
+    }
+
+    @Override
+    @Transactional
+    public CommonResponse<Void> deleteUserById(Long id) {
+        log.info("删除用户开始, userId={}", id);
+
+        // 1. 参数验证
+        UserEntity existing = userMapper.findById(id);
+        if (existing == null) {
+            throw new BusinessException(ErrorCodeEnum.USER_NOT_FOUND);
+        }
+
+        // 2. 业务处理 - 软删除
+        userMapper.updateEnabled(id, false);
+
+        log.info("删除用户成功, userId={}", id);
+        return CommonResponse.success();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CommonResponse<PageData<UserResponse>> searchUsers(SearchUserRequest request) {
+        log.info("搜索用户开始, keyword={}, role={}", request.getKeyword(), request.getRole());
+
+        // 1. 参数验证
+        int offset = (request.getPageNumber() - 1) * request.getPageSize();
+
+        // 2. 业务处理
+        List<UserEntity> entities = userMapper.search(
+                request.getRole(),
+                request.getKeyword(),
+                request.getIsEnabled(),
+                request.getPageSize(),
+                offset
+        );
+
+        long total = userMapper.countByRole(request.getRole());
+
+        // 3. 组装响应
+        List<UserResponse> responses = entities.stream()
+                .map(this::convertToResponse)
+                .toList();
+
+        PageData<UserResponse> pageData = PageData.<UserResponse>builder()
+                .total(total)
+                .pageNumber(request.getPageNumber())
+                .pageSize(request.getPageSize())
+                .list(responses)
+                .build();
+
+        log.info("搜索用户成功, 总数={}", total);
+        return CommonResponse.success(pageData);
+    }
+
+    @Override
+    @Transactional
+    public CommonResponse<Void> toggleUserStatus(Long id, Boolean enabled) {
+        log.info("切换用户状态开始, userId={}, enabled={}", id, enabled);
+
+        // 1. 参数验证
+        UserEntity existing = userMapper.findById(id);
+        if (existing == null) {
+            throw new BusinessException(ErrorCodeEnum.USER_NOT_FOUND);
+        }
+
+        // 2. 业务处理
+        userMapper.updateEnabled(id, enabled);
+
+        log.info("切换用户状态成功, userId={}, enabled={}", id, enabled);
+        return CommonResponse.success();
+    }
+
+    /**
+     * 实体转响应对象
+     *
+     * @param entity 用户实体
+     * @return 用户响应对象
+     */
+    private UserResponse convertToResponse(UserEntity entity) {
+        return UserResponse.builder()
+                .id(entity.getId())
+                .username(entity.getUsername())
+                .email(entity.getEmail())
+                .role(entity.getRole())
+                .isEnabled(entity.getIsEnabled())
+                .createTime(entity.getCreateTime())
+                .updateTime(entity.getUpdateTime())
+                .build();
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@Service` 注解
+- [ ] 类名是否以 `ServiceImpl` 结尾
+- [ ] 是否使用了 `@Autowired` 字段注入
+- [ ] 是否使用了 `@Slf4j` 注解
+- [ ] 是否添加了 JavaDoc 注释
+
+### 生成中检查
+- [ ] 是否按照规范定义方法
+- [ ] 是否包含了必要的业务逻辑
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的方法
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 接口定义: `04-conventions/service.mdc`
+- 数据访问: `04-conventions/mapper.mdc`
+- 异常处理: `04-conventions/exception.mdc`

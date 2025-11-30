@@ -1,0 +1,38 @@
+---
+description: API 设计规范（REST、URL、HTTP方法、状态码、请求/响应、错误处理），适用于所有 Spring Boot 项目。
+globs:
+alwaysApply: true
+layer: L2
+allowedReferences: [L2, L3, L4]
+---
+
+# API 设计规范
+
+## 适用范围
+定义所有Spring Boot项目的API设计标准，包括RESTful原则、HTTP方法、状态码和响应格式。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用RESTful原则设计API
+- 仅使用GET和POST两种HTTP方法
+- 所有接口必须返回CommonResponse<T>
+- 分页查询必须使用POST + 继承CommonPageRequest的请求类
+- 复杂查询（参数超过两个）必须使用POST + 继承CommonRequest的请求类
+
+### 禁止要求（MUST NOT）
+- 禁止使用动词化路径
+- 禁止使用其他HTTP方法（PUT、DELETE等）
+- 禁止直接返回业务数据（必须使用CommonResponse包装）
+
+### 可选要求（MAY）
+- 可以使用URL路径版本控制
+- 可以使用Header版本控制
+- 可以使用自定义筛选字段
+
+## 进一步阅读
+- 详细规范与示例：`common/03-api.mdc`
+- 相关代码规则：
+  - 控制器：`04-conventions/controller.mdc`
+  - 校验：`04-conventions/validation.mdc`
+  - 响应模型：`04-conventions/response.mdc`

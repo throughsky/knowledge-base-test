@@ -1,0 +1,126 @@
+---
+description: 定义所有枚举类的通用编码标准和命名规范
+globs: **/src/main/java/**/enums/**Enum.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# 枚举类编码约定
+
+## 适用范围
+所有枚举类的通用规范，不包含具体业务逻辑。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须使用 `@Getter` 注解
+- 必须包含 `code` 和 `desc` 字段
+- 必须提供完整的构造器
+- 类名必须以 `Enum` 结尾
+- 字段声明为 `private final`
+- 枚举值使用大写字母和下划线
+- 必须添加 JavaDoc 注释
+
+### 禁止要求（MUST NOT）
+- 禁止不带后缀（UserRole, CourseStatus等）
+- 禁止在枚举中包含复杂业务逻辑
+- 禁止修改已定义的枚举值
+
+### 可选要求（MAY）
+- 可以添加 `fromCode(String)` 方法
+- 可以添加 `isValid(String)` 方法
+- 可以添加自定义方法
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 枚举值定义
+- 字段定义
+- 构造器
+- 方法实现
+
+### 完整实现模板
+```java
+package com.edu.soop.enums;
+
+import lombok.Getter;
+
+/**
+ * 用户角色枚举
+ * 
+ * @author system
+ * @since 1.0.0
+ */
+@Getter
+public enum UserRoleEnum {
+    
+    ADMIN("admin", "管理员"),
+    TEACHER("teacher", "教师"),
+    STUDENT("student", "学生");
+    
+    private final String code;
+    private final String desc;
+    
+    UserRoleEnum(String code, String desc) {
+        this.code = code;
+        this.desc = desc;
+    }
+    
+    /**
+     * 根据角色代码查找枚举值
+     * 
+     * @param code 角色代码
+     * @return 对应的枚举值
+     * @throws IllegalArgumentException 如果找不到对应的枚举值
+     */
+    public static UserRoleEnum fromCode(String code) {
+        for (UserRoleEnum role : values()) {
+            if (role.code.equals(code)) {
+                return role;
+            }
+        }
+        throw new IllegalArgumentException("Invalid role code: " + code);
+    }
+    
+    /**
+     * 验证角色代码是否有效
+     * 
+     * @param code 角色代码
+     * @return 是否有效
+     */
+    public static boolean isValid(String code) {
+        for (UserRoleEnum role : values()) {
+            if (role.code.equals(code)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否使用了 `@Getter` 注解
+- [ ] 是否包含了 `code` 和 `desc` 字段
+- [ ] 是否提供了完整的构造器
+- [ ] 类名是否以 `Enum` 结尾
+
+### 生成中检查
+- [ ] 是否按照规范定义枚举值
+- [ ] 是否添加了必要的注释
+- [ ] 是否包含了 `fromCode` 方法
+- [ ] 是否遵循命名规范
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的枚举值
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 特定枚举: `04-conventions/error-code-enum.mdc`

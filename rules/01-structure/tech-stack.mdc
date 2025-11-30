@@ -1,0 +1,146 @@
+---
+description: Spring Boot 项目技术栈清单与官方文档链接。
+globs: 
+alwaysApply: true
+layer: L1
+allowedReferences: [L1, L2, L3, L4]
+---
+
+# 技术栈
+
+## 核心框架
+
+- Spring Boot
+  - 用途：应用启动、自动装配、生产级特性（Actuator、外部化配置）
+  - 文档：`https://docs.spring.io/spring-boot/docs/current/reference/html/`
+- Spring Framework
+  - 用途：依赖注入（IoC）、面向切面编程（AOP）、事务、Web MVC
+  - 文档：`https://docs.spring.io/spring-framework/reference/`
+
+## 构建与依赖管理
+
+**重要：本项目统一使用Gradle作为构建工具，不使用Maven**
+
+- **Gradle（项目唯一构建工具）**
+  - 用途：高性能构建、依赖管理、多项目管理
+  - 版本要求：Gradle ≥ 8.14
+  - 文档：`https://docs.gradle.org/current/userguide/userguide.html`
+  - 配置规范：参考 `04-conventions/gradle.mdc`
+  - 必需文件：
+    - `build.gradle` - 构建配置（必需）
+    - `settings.gradle` - 项目设置（必需）
+    - `gradle.properties` - Gradle属性（推荐）
+    - Gradle Wrapper文件（推荐）
+
+**禁止行为**：
+- 禁止同时使用Maven和Gradle
+- 禁止生成pom.xml文件
+- 禁止缺少settings.gradle文件
+
+## Web 与 API
+
+- Spring MVC / Spring Web
+  - 用途：RESTful API、请求映射、拦截器、参数校验
+  - 文档：`https://docs.spring.io/spring-framework/reference/web/webmvc.html`
+- Springdoc OpenAPI
+  - 用途：OpenAPI 3 文档生成与 Swagger UI
+  - 文档：`https://springdoc.org/`
+
+## 数据访问
+
+- MyBatis / MyBatis-Spring
+  - 用途：半自动化 SQL 映射、细粒度 SQL 控制（注解模式）
+  - 文档：`https://mybatis.org/mybatis-3/` | `https://mybatis.org/spring/`
+  - 使用规范：参考 `04-conventions/mapper.mdc`
+- 数据库驱动
+  - MySQL：`https://dev.mysql.com/doc/` | 驱动 `mysql-connector-j`
+- 数据库设计规范
+  - 表结构设计：参考 `02-design/database.mdc`
+  - 实体类映射：参考 `04-conventions/entity.mdc`
+
+## 校验与序列化
+
+- Jakarta Validation（Hibernate Validator）
+  - 用途：Bean 参数校验（@Valid、@NotNull 等）
+  - 文档：`https://jakarta.ee/specifications/bean-validation/` | `https://hibernate.org/validator/`
+- Jackson
+  - 用途：JSON 序列化/反序列化、时间格式、忽略策略
+  - 文档：`https://github.com/FasterXML/jackson`
+
+## 安全
+
+- Spring Security
+  - 用途：认证、授权、过滤链、方法级安全
+  - 文档：`https://docs.spring.io/spring-security/reference/`
+
+## 缓存与会话
+
+- Spring Cache
+  - 用途：方法级缓存（@Cacheable/@CacheEvict）
+  - 文档：`https://docs.spring.io/spring-framework/reference/integration/cache.html`
+- Redis（可选）
+  - 用途：分布式缓存、会话共享、限流
+  - 文档：`https://redis.io/docs/` | Spring Data Redis：`https://docs.spring.io/spring-data/redis/docs/current/reference/html/`
+
+## 消息与异步
+
+- Spring for Apache Kafka / RabbitMQ（可选）
+  - 用途：异步消息、事件驱动架构
+  - Kafka 文档：`https://kafka.apache.org/documentation/`
+  - Spring Kafka：`https://docs.spring.io/spring-kafka/reference/`
+  - RabbitMQ 文档：`https://www.rabbitmq.com/documentation.html`
+- Spring @Async / Scheduling
+  - 用途：异步任务与定时任务
+  - 文档：`https://docs.spring.io/spring-framework/reference/integration/scheduling.html`
+
+## 配置与迁移
+
+- Spring Boot Configuration（外部化配置）
+  - 文档：`https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.external-config`
+
+## 日志与观测性
+
+- SLF4J + Logback
+  - 用途：日志门面与实现、分环境日志策略
+  - 文档：`http://www.slf4j.org/` | `https://logback.qos.ch/documentation.html`
+- Spring Boot Actuator
+  - 用途：健康检查、指标、环境信息
+  - 文档：`https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html`
+
+## 测试
+
+- JUnit 5
+  - 用途：单元测试标准框架
+  - 文档：`https://junit.org/junit5/docs/current/user-guide/`
+- Mockito
+  - 用途：Mock 依赖、交互验证
+  - 文档：`https://site.mockito.org/`
+- Spring Boot Test / MockMvc
+  - 用途：集成测试、Web 层测试
+  - 文档：`https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing`
+
+## 部署与容器化（可选）
+
+- Docker
+  - 用途：容器化打包与运行
+  - 文档：`https://docs.docker.com/`
+- Spring Boot 打包
+  - 用途：可执行 JAR、分层镜像支持
+  - 文档：`https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#io.docker`
+
+## 版本与兼容性建议
+
+- 版本策略：遵循 Spring Boot LTS 或最新稳定版
+- Java 版本：优先使用 LTS（如 17/21），并与 Spring Boot 要求匹配
+- 数据库驱动与中间件客户端：选择与服务器端主版本兼容的最新稳定版本
+
+参考：
+- Spring 兼容性（Releases & Support）：`https://spring.io/projects/spring-boot#support`
+- Spring Initializr（依赖选型参考）：`https://start.spring.io/`
+
+## 进一步阅读
+- 与日志、异常、切面相关的代码规范：`04-conventions/logging-aspect.mdc`、`04-conventions/exception-handler.mdc`
+- 与数据访问相关的代码规范：`04-conventions/mapper.mdc`、`04-conventions/entity.mdc`
+- 与 Web 层相关的代码规范：`04-conventions/controller.mdc`、`04-conventions/validation.mdc`
+- 与应用配置与主类相关：`04-conventions/spring-config.mdc`、`04-conventions/application.mdc`
+

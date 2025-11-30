@@ -1,0 +1,46 @@
+---
+description: 命名规范（包、类、方法、变量、常量），适用于所有 Spring Boot 项目。
+globs: 
+alwaysApply: true
+layer: L3
+allowedReferences: [L3, L4]
+---
+
+# 命名规范
+
+## 适用范围
+定义所有Spring Boot项目的命名规范，包括包、类、方法、变量和常量的命名规则。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 包名必须使用全小写字母，使用点分隔符
+- 类名必须使用帕斯卡命名法（PascalCase）
+- 方法名必须使用驼峰命名法（camelCase）
+- 变量名必须使用驼峰命名法（camelCase）
+- 常量名必须使用全大写，下划线分隔
+
+### 禁止要求（MUST NOT）
+- 禁止使用中文命名
+- 禁止使用特殊字符
+- 禁止使用保留字
+
+### 可选要求（MAY）
+- 可以使用有意义的命名
+- 可以使用缩写（但要有意义）
+- 可以使用下划线分隔（仅在常量中）
+
+## 进一步阅读
+- 命名在具体类型中的体现：
+  - `04-conventions/controller.mdc`
+  - `04-conventions/service.mdc`
+  - `04-conventions/service-impl.mdc`
+  - `04-conventions/entity.mdc`
+  - `04-conventions/mapper.mdc`
+  - `04-conventions/request.mdc`
+  - `04-conventions/response.mdc`
+  - `04-conventions/exception.mdc`
+  - `04-conventions/utility.mdc`
+  - `04-conventions/constants.mdc`
+  - `04-conventions/enum.mdc`
+

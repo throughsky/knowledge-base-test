@@ -1,0 +1,137 @@
+---
+description: Springboot项目代码结构规范（目录结构与包结构约定），适用于所有 Spring Boot 项目。
+globs:
+alwaysApply: true
+layer: L1
+allowedReferences: [L1, L2, L3, L4]
+---
+
+# 项目结构和包结构规范
+
+## 目录结构
+
+### 强制要求
+- **必须严格按照以下结构创建目录和文件**
+- **不允许创建任何规则中未定义的目录**
+- **不允许将文件放置在规则中未定义的位置**
+- **必须按照指定的顺序创建目录和文件**
+- **如果目录中没有对应的文件，则不应该生成该目录**（按需创建原则）
+- **必须强制用户提供选择一个有意义的springboot项目的group名和项目名**
+- **group名和项目名，规则必须符合com.yourcompany.appname，其中group名=com.yourcompany，项目名=appname**
+- **test目录结构必须与main目录对应，遵循相同的包结构**
+```
+src/
+├── main/
+│   ├── java/
+│   │   └── com/example/app/
+│   │       ├── {AppName}Application.java # 主入口类文件（AppName首字母大写）
+│   │       ├── filter/                   # 过滤器类目录（按需创建）
+│   │       ├── interceptor/              # 拦截器类目录（按需创建）
+│   │       ├── validator/                # 验证器类目录（按需创建）
+│   │       ├── component/                # 组件类目录（按需创建）
+│   │       ├── config/                   # 配置类目录
+│   │       ├── controller/               # REST控制器目录
+│   │       ├── service/                  # 业务逻辑服务目录
+│   │       │   └── impl/                 # 服务实现类目录
+│   │       ├── entity/                   # 实体类目录（对应数据库表结构）
+│   │       ├── mapper/                   # Mapper接口目录
+│   │       ├── dto/                      # 数据传输对象目录（按需创建）
+│   │       ├── enums/                    # 枚举类目录（按需创建，所有文件必须以Enum.java结尾）
+│   │       ├── constants/                # 常量类目录（按需创建，错误码必须用枚举）
+│   │       ├── vo/                       # 视图对象目录
+│   │       │   ├── request/              # 请求对象目录
+│   │       │   │   ├── CommonRequest.java        # 通用请求基类文件（必须）
+│   │       │   │   ├── CommonPageRequest.java    # 分页请求基类文件（必须）
+│   │       │   │   └── CreateUserRequest.java    # 具体请求对象示例文件
+│   │       │   └── response/             # 响应对象目录
+│   │       │       ├── CommonResponse.java       # 通用响应基类文件（必须）
+│   │       │       ├── PageData.java             # 分页数据封装文件（必须）
+│   │       │       └── UserResponse.java         # 具体响应对象示例文件
+│   │       ├── exception/                # 自定义异常目录
+│   │       ├── task/                     # 定时任务目录（按需创建）
+│   │       ├── util/                     # 工具类目录
+│   │       └── security/                 # 安全相关类目录（按需创建）
+│   └── resources/
+│       ├── application.yml               # 应用配置文件（YAML格式）
+│       ├── application-dev.yml           # 开发环境配置文件
+│       ├── application-prod.yml          # 生产环境配置文件
+│       ├── sql/                          # SQL脚本目录
+│       │   ├── schema.sql                # DDL建表语句文件
+│       │   └── data.sql                  # DML初始化数据文件
+│       ├── static/                       # 静态资源目录（HTML、CSS、JS）
+│       └── templates/                    # 视图模板目录（如Thymeleaf）
+└── test/
+    ├── java/
+    │   └── com/example/app/
+    │       ├── controller/               # 控制器测试目录（必须创建）
+    │       ├── service/                  # 服务测试目录（必须创建）
+    │       └── mapper/                   # Mapper测试目录（必须创建）
+    └── resources/
+        └── application-test.yml          # 测试环境配置文件（必须创建）
+```
+
+### 测试目录创建要求
+- **必须创建test目录结构**，即使暂时为空
+- test/java包结构必须与main/java完全对应
+- 必须创建 `application-test.yml` 配置文件
+- 每个核心模块（controller、service、mapper）都应有对应的测试目录
+
+
+
+## 包结构约定
+
+根包名：选择一个有意义的根包名称（例如，com.yourcompany.appname）。
+
+```java
+
+// 基础包结构
+com.{company}.{project}.{layer}
+
+// 示例（基于目录结构）
+com.example.app.{AppName}Application                # 主入口类（如SsmApplication）
+com.example.app.config.DatabaseConfig               # 配置类
+com.example.app.controller.UserController           # 控制器
+com.example.app.service.UserService                 # 服务接口
+com.example.app.service.impl.UserServiceImpl        # 服务实现
+com.example.app.entity.UserEntity                   # 实体类
+com.example.app.mapper.UserMapper                   # Mapper接口
+com.example.app.dto.UserDto                         # 数据传输对象
+com.example.app.vo.request.CommonRequest            # 通用请求基类
+com.example.app.vo.request.CommonPageRequest        # 分页请求基类
+com.example.app.vo.request.CreateUserRequest        # 具体请求对象
+com.example.app.vo.response.CommonResponse          # 通用响应基类
+com.example.app.vo.response.PageData                # 分页数据封装
+com.example.app.vo.response.UserResponse            # 具体响应对象
+com.example.app.exception.UserNotFoundException     # 自定义异常
+com.example.app.task.ScheduledTask                  # 定时任务
+com.example.app.util.DateUtils                      # 工具类
+com.example.app.security.JwtUtil                    # 安全工具类
+
+// 示例（当request和response对象比较多时，可以用Domain拆分一层）
+com.example.app.vo.request.user.CreateUserRequest
+com.example.app.vo.response.user.LoginRequest
+
+// 测试包结构示例
+com.example.app.controller.UserControllerTest  # 控制器测试
+com.example.app.service.UserServiceTest        # 服务测试
+com.example.app.mapper.UserMapperTest          # Mapper测试
+```
+
+## 进一步阅读
+- 分层规范：
+  - `04-conventions/controller.mdc`
+  - `04-conventions/service.mdc`、`04-conventions/service-impl.mdc`
+  - `04-conventions/mapper.mdc`
+  - `04-conventions/entity.mdc`
+  - `04-conventions/request.mdc`、`04-conventions/response.mdc`
+  - `04-conventions/common-request.mdc`、`04-conventions/common-response.mdc`
+  - `04-conventions/page-data.mdc`
+  - `04-conventions/exception.mdc`、`04-conventions/exception-handler.mdc`
+  - `04-conventions/task.mdc`
+  - `04-conventions/utility.mdc`
+  - `04-conventions/spring-config.mdc`
+- 基础规则：
+  - 命名规范：`03-coding/naming.mdc`
+  - 代码风格：`03-coding/code-style.mdc`
+  - 编码实践：`03-coding/coding.mdc`
+

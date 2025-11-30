@@ -1,0 +1,151 @@
+---
+description: 定义请求类的编码标准，包括请求对象、参数验证和数据校验
+globs: **/src/main/java/**/vo/request/**/**Request.java
+layer: L4
+allowedReferences: [L4]
+---
+
+# Request 编码约定
+
+## 适用范围
+定义具体请求类的实现规范，所有请求类必须继承 `CommonRequest` 或 `CommonPageRequest`。
+
+## 核心规则
+
+### 强制要求（MUST）
+- 必须继承 `CommonRequest` 或 `CommonPageRequest`
+- 必须使用 `@Data` 注解
+- 必须使用 `@NoArgsConstructor` 注解
+- 必须使用 `@Accessors(chain = true)` 注解
+- 必须使用 `@EqualsAndHashCode(callSuper = true)` 注解
+- 类名必须以 `Request` 结尾
+- 必须添加 JavaDoc 注释
+- 位置：`vo.request` 包下
+
+### 禁止要求（MUST NOT）
+- 禁止不继承基类的请求类
+- 禁止不带 `Request` 后缀
+- 禁止缺少必要的验证注解
+
+### 可选要求（MAY）
+- 可以使用 `@Schema` 注解提供API文档
+- 可以使用参数校验注解（@NotNull、@NotBlank、@Size等）
+- 可以使用格式验证注解（@Email、@Pattern等）
+
+## 完整代码模板
+
+### 文件结构
+- 包声明
+- 导入语句
+- 类声明
+- 字段定义
+- 验证注解
+
+### 完整实现模板
+```java
+package com.edu.soop.vo.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+/**
+ * 创建用户请求
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Data
+@NoArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+@Schema(description = "创建用户请求")
+public class CreateUserRequest extends CommonRequest {
+
+    @Schema(description = "用户名", example = "john_doe")
+    @NotBlank(message = "用户名不能为空")
+    @Size(min = 3, max = 20, message = "用户名长度3-20")
+    private String username;
+
+    @Schema(description = "密码", example = "password123")
+    @NotBlank(message = "密码不能为空")
+    @Size(min = 6, max = 20, message = "密码长度6-20")
+    private String password;
+
+    @Schema(description = "邮箱", example = "john@example.com")
+    @NotBlank(message = "邮箱不能为空")
+    @Email(message = "邮箱格式不正确")
+    private String email;
+
+    @Schema(description = "角色", example = "STUDENT")
+    @NotBlank(message = "角色不能为空")
+    private String role;
+}
+```
+
+### 分页查询请求模板
+```java
+package com.edu.soop.vo.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+/**
+ * 搜索用户请求
+ *
+ * @author system
+ * @since 1.0.0
+ */
+@Data
+@NoArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+@Schema(description = "搜索用户请求")
+public class SearchUserRequest extends CommonPageRequest {
+
+    @Schema(description = "角色", example = "STUDENT")
+    private String role;
+
+    @Schema(description = "关键词", example = "john")
+    private String keyword;
+
+    @Schema(description = "是否启用", example = "true")
+    private Boolean isEnabled;
+}
+```
+
+## 规则执行检查清单
+
+### 生成前检查
+- [ ] 是否继承了 `CommonRequest` 或 `CommonPageRequest`
+- [ ] 是否使用了 `@Data` 注解
+- [ ] 是否使用了 `@NoArgsConstructor` 注解
+- [ ] 是否使用了 `@Accessors(chain = true)` 注解
+- [ ] 是否使用了 `@EqualsAndHashCode(callSuper = true)` 注解
+- [ ] 类名是否以 `Request` 结尾
+- [ ] 是否添加了 JavaDoc 注释
+
+### 生成中检查
+- [ ] 是否按照规范定义字段
+- [ ] 是否添加了必要的验证注解
+- [ ] 是否遵循命名规范
+- [ ] 是否避免了禁止的操作
+
+### 生成后检查
+- [ ] 是否通过编译检查
+- [ ] 是否包含了所有必要的字段
+- [ ] 是否符合命名规范
+- [ ] 是否满足功能要求
+
+## 相关规则
+- 基类: `04-conventions/common-request.mdc`
+- 分页基类: `04-conventions/common-page-request.mdc`
+- 控制器: `04-conventions/controller.mdc`
