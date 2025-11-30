@@ -1,6 +1,6 @@
 # AI Coding 研发流程体系
 
-**版本**: 2.0
+**版本**: 2.1
 **创建日期**: 2025-12-01
 **更新日期**: 2025-12-01
 **作者**: 架构团队
@@ -113,8 +113,54 @@ SDD的核心理念是"**设计即约束**"——通过清晰的功能规格文�
 | `/speckit.plan` | 生成实施计划 | spec.md | plan.md |
 | `/speckit.tasks` | 生成任务列表 | plan.md | tasks.md |
 | `/speckit.implement` | 执行代码实现 | tasks.md | 代码文件 |
+| `/speckit.analyze` | 跨产物分析 | spec/plan/tasks | 一致性报告 |
+| `/speckit.clarify` | 需求澄清 | spec.md | 澄清问题 |
 
-#### 2.1.3 AI 协同 SDD 实践
+#### 2.1.3 知识库集成增强
+
+**各阶段知识库读取**：
+
+| 阶段 | 知识库层级 | 读取内容 | 用途 |
+|------|-----------|----------|------|
+| **specify** | L1 项目级 | glossary.md, domain-model.md | 术语规范、实体识别 |
+| **specify** | L2 仓库级 | context.md, overview.md | 模块边界、避免重复 |
+| **plan** | L0 企业级 | architecture-principles.md | 架构合规检查 |
+| **plan** | L1 项目级 | tech-stack.md, ADR-*.md | 技术选型、ADR一致性 |
+| **plan** | L2 仓库级 | module_tree.json, {module}.md | 路径规范、组件复用 |
+| **tasks** | L2 仓库级 | module_tree.json | 文件路径验证 |
+| **implement** | L2 仓库级 | {module}.md | 代码模式参考 |
+
+#### 2.1.4 架构合规检查
+
+在 `/speckit.plan` 的 Phase 0 和 Phase 1 之间强制执行架构合规检查：
+
+**九大原则检查矩阵**：
+
+| 原则 | 检查项 | 严重级别 |
+|------|--------|----------|
+| I. TDD | 测试策略、覆盖率目标 | CRITICAL |
+| III. 微服务架构 | 分层结构、技术栈合规 | CRITICAL |
+| IV. 安全优先 | 输入校验、审计日志 | CRITICAL |
+| V. RESTful | API设计规范 | HIGH |
+| VI. 生产就绪 | 错误处理、事务管理 | HIGH |
+| VIII. 简洁性 | YAGNI、依赖管理 | MEDIUM |
+| IX. 事件驱动 | 事件监听、幂等性 | HIGH |
+
+**合规检查输出**：
+
+```markdown
+## Architecture Compliance Check
+
+| 原则 | 适用性 | 检查结果 | 说明 |
+|------|--------|----------|------|
+| I. TDD | ✓ | ✅ | 已规划单元测试和集成测试 |
+| III. 微服务 | ✓ | ⚠️ | 技术栈合规，分层需调整 |
+| IV. 安全 | ✓ | ✅ | 已规划输入校验和审计日志 |
+
+**处理规则**: ✅全部合规→继续 | ⚠️需调整→修改后继续 | ❌违规→阻止流程
+```
+
+#### 2.1.5 AI 协同 SDD 实践
 
 **Prompt 模板化**：
 
@@ -1000,6 +1046,37 @@ review:
    └── 发送通知 (Slack/邮件)
 ```
 
+### 5.7 SpecKit 知识库配置
+
+**配置文件** (`.specify/knowledge-config.yaml`)：
+
+```yaml
+knowledge_sources:
+  enterprise:
+    enabled: true
+    path: "../docs-knowledge/enterprise-standards"
+  project:
+    enabled: true
+    path: "../docs-knowledge/project-xxx"
+  repository:
+    context: ".knowledge/context.md"
+    code_derived: ".knowledge/code-derived/"
+
+architecture_compliance:
+  enabled: true
+  strict_mode: true  # true: 违规阻止流程
+  skip_principles: []  # 可跳过的原则（需理由）
+```
+
+**错误代码**：
+
+| 代码 | 含义 | 处理 |
+|------|------|------|
+| ARCH-001 | 违反企业架构原则 | 阻止流程 |
+| ARCH-002 | ADR 冲突 | 阻止流程 |
+| ARCH-003 | 模块边界越界 | 警告 |
+| KNOW-001 | 知识库不可访问 | 跳过检查 |
+
 ---
 
 ## 6. 统一工具链
@@ -1320,6 +1397,7 @@ review:
 |------|------|------|----------|
 | 1.0 | 2025-12-01 | 架构团队 | 初始版本 |
 | 2.0 | 2025-12-01 | 架构团队 | 新增代码设计规范（SOLID原则、设计模式）、编码技巧规范；完善Code Review流程与检查清单 |
+| 2.1 | 2025-12-01 | 架构团队 | 整合SpecKit知识库增强：SDD阶段知识库集成、架构合规检查机制、知识库配置 |
 
 ---
 
