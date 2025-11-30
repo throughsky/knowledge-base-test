@@ -1,0 +1,82 @@
+# 知识库继承配置 (Knowledge Inheritance Configuration)
+# 本文件定义了项目知识库如何继承和引用上层知识
+
+version: "1.0"
+updated: "2025-11-30"
+
+# L0 层继承配置
+l0_enterprise:
+  source: "git@github.com:company/enterprise-standards.git"
+  ref: "v2.1"  # 使用固定版本，确保稳定性
+  paths:
+    - "constitution/*"           # 架构原则、安全基线、合规要求
+    - "standards/coding-standards/java-standards.md"
+    - "standards/coding-standards/typescript-standards.md"
+    - "standards/api-design-guide.md"
+    - "technology-radar/*"       # 技术雷达
+    - "governance/*"             # 治理流程
+
+# L1 层引用配置
+l1_domains:
+  source: "git@github.com:company/domain-knowledge.git"
+  ref: "main"
+  contexts:
+    - name: "user-domain"
+      paths:
+        - "bounded-contexts/user-domain/*"
+    - name: "order-domain"
+      paths:
+        - "bounded-contexts/order-domain/*"
+    - name: "payment-domain"
+      paths:
+        - "bounded-contexts/payment-domain/*"
+  shared:
+    - "service-mesh/service-catalog.md"
+    - "glossary/enterprise-glossary.md"
+
+# 本地覆盖配置
+local_overrides:
+  # 可以覆盖上层规范，需要说明原因
+  overrides:
+    - source: "standards/coding-standards/java-standards.md"
+      target: "./implementation/coding/coding-conventions.md"
+      reason: "项目特定的包结构和命名约定"
+
+# 依赖仓库配置
+dependencies:
+  repositories:
+    - name: "user-service"
+      url: "git@github.com:company/ecp-user-service.git"
+      knowledge_path: ".knowledge"
+
+    - name: "order-service"
+      url: "git@github.com:company/ecp-order-service.git"
+      knowledge_path: ".knowledge"
+
+    - name: "product-service"
+      url: "git@github.com:company/ecp-product-service.git"
+      knowledge_path: ".knowledge"
+
+# AI上下文聚合配置
+ai_context:
+  auto_generate: true
+  output_path: "./ai-context.md"
+  include:
+    - l0: ["architecture-principles.md", "security-baseline.md"]
+    - l1: ["domain-model.md", "api-contracts.md"]
+    - l2: ["tech-stack.md", "layer-summary.md"]
+    - l3: ["coding-conventions.md", "ai-principles.md"]
+  exclude:
+    - "*.test.md"
+    - "drafts/*"
+
+# 同步配置
+sync:
+  # 定期检查上游更新
+  check_interval: "weekly"
+  # 更新时是否自动合并
+  auto_merge: false
+  # 通知渠道
+  notify:
+    - channel: "slack"
+      webhook: "${SLACK_WEBHOOK_URL}"
