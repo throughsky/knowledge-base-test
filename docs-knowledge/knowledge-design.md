@@ -20,7 +20,7 @@
 
 **设计目标**:
 
-- 简化仓库级知识库，降低维护成本，使用最简单的方式维护关键文档，例如context.md和code-drivered目录的codewiki。
+- 简化仓库级知识库，降低维护成本，使用最简单的方式维护关键文档，例如context.md和code-derived目录的codewiki。
 - 集中管理项目级业务知识和架构决策
 - 支持AI自动聚合和更新
 - 建立清晰的信息流向：仓库 → 项目 → 企业
@@ -270,8 +270,10 @@ repositories:
     repos:
       - name: "user-service"
         knowledge_path: ".knowledge/context.md"
+        code_driver'd_path: ".knowledge/code-drivere'd/"
       - name: "bridge-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
       # ... 更多仓库
 
   # 本地开发环境
@@ -279,16 +281,58 @@ repositories:
     enabled: true
     base_path: "../repos"
 
+# 知识源类型
+knowledge_sources:
+  # 人工维护的上下文文档
+  context:
+    path: ".knowledge/context.md"
+    type: "manual"
+    required: true
+
+  # AI生成的代码衍生文档
+  code_derived:
+    path: ".knowledge/code-derived/"
+    type: "auto-generated"
+    required: false
+    files:
+      - "metadata.json"      # 生成元信息
+      - "overview.md"        # 仓库概览
+      - "module_tree.json"   # 模块依赖树
+      - "*.md"               # 各模块文档
+
 # 聚合任务
 tasks:
-  collect_changes:
+  # 任务1: 收集上下文变更
+  collect_context:
     description: "收集各仓库 context.md 的变更"
-    output: "aggregation/cache/changes.json"
+    source: "context"
+    output: "aggregation/cache/context-changes.json"
 
+  # 任务2: 收集代码衍生文档
+  collect_code_derived:
+    description: "收集各仓库 code-derived 文档"
+    source: "code_derived"
+    output: "aggregation/cache/code-derived/"
+    files:
+      - "overview.md"        # 架构概览
+      - "metadata.json"      # 生成信息
+      - "module_tree.json"   # 模块树
+
+  # 任务3: 分析变更影响
   analyze_impact:
     description: "分析变更对项目文档的影响"
     prompt: "aggregation/scripts/prompts/analyze-changes.md"
+    inputs:
+      - "context-changes.json"
+      - "code-derived/"
 
+  # 任务4: 生成技术洞察
+  generate_insights:
+    description: "从 code-derived 生成跨仓库技术洞察"
+    prompt: "aggregation/scripts/prompts/generate-insights.md"
+    output: "aggregated/technical-insights.md"
+
+  # 任务5: 更新项目文档
   update_docs:
     description: "更新项目级文档"
     targets:
@@ -411,14 +455,120 @@ on:
 {repo}/
 ├── CLAUDE.md                    # AI入口 (必须)
 └── .knowledge/
-    ├── context.md               # 仓库上下文 (必须，1个文件)
+    ├── context.md               # 仓库上下文 (必须，人工维护)
     ├── decisions.md             # 重要决策记录 (可选)
-    └── code-derived/            # AI生成 (可选，自动生成)
-        ├── overview.md          # 代码概览
-        └── module-docs/         # 模块文档
+    └── code-derived/            # 代码衍生文档 (AI自动生成)
+        ├── metadata.json        # 生成元信息
+        ├── overview.md          # 仓库概览 (端到端架构)
+        ├── module_tree.json     # 模块依赖树
+        └── {module-name}.md     # 各模块详细文档
 ```
 
-### 5.3 context.md 模板
+### 5.3 code-derived 代码衍生文档
+
+code-derived 目录存放通过 AI 扫描代码自动生成的技术文档，是仓库级知识库的重要组成部分。
+
+#### 生成方式
+
+```bash
+# 使用 codewiki 工具生成
+codewiki generate --repo /path/to/repo --output .knowledge/code-derived/
+
+# 或集成到 CI/CD
+# 每次代码变更时自动重新生成
+```
+
+#### 文件说明
+
+| 文件                 | 说明       | 内容                        |
+| -------------------- | ---------- | --------------------------- |
+| `metadata.json`    | 生成元信息 | 时间戳、模型、统计数据      |
+| `overview.md`      | 仓库概览   | 端到端架构图、模块速览表    |
+| `module_tree.json` | 模块依赖树 | 组件数量、层级深度          |
+| `{module}.md`      | 模块文档   | 架构图、核心组件、API、配置 |
+
+#### metadata.json 示例
+
+```json
+{
+  "generation_info": {
+    "timestamp": "2025-01-15T10:00:00Z",
+    "main_model": "claude-sonnet-4-20250514",
+    "generator_version": "1.0.0",
+    "repo_path": "/path/to/repo",
+    "commit_id": "abc123"
+  },
+  "statistics": {
+    "total_components": 1995,
+    "leaf_nodes": 218,
+    "max_depth": 2
+  },
+  "files_generated": [
+    "overview.md",
+    "module_tree.json",
+    "common-auth.md",
+    "common-gateway.md"
+  ]
+}
+```
+
+#### overview.md 结构
+
+```markdown
+# {repo-name} 仓库概览
+
+## 仓库目的
+[一段话描述仓库的核心职责和技术栈]
+
+## 端到端架构
+[Mermaid 图展示整体架构]
+
+## 核心模块速览
+| 模块 | 职责 | 关键组件 | 文档入口 |
+|------|------|----------|----------|
+| module-a | 职责描述 | 组件列表 | [链接] |
+```
+
+#### 模块文档结构 (.md)
+
+```markdown
+# {module-name} 模块文档
+
+## 简介
+[模块职责和核心功能]
+
+## 核心功能
+- 功能1
+- 功能2
+
+## 架构设计
+### 整体架构图
+[Mermaid 图]
+
+### 组件交互流程
+[Mermaid 序列图]
+
+## 核心组件详解
+### 1. 组件A
+[组件说明、核心方法]
+
+## 配置说明
+[配置项和示例]
+
+## 集成关系
+[与其他模块的依赖关系]
+```
+
+#### 聚合价值
+
+code-derived 文档在项目级聚合时提供：
+
+1. **技术架构洞察**: 从各仓库 overview.md 提取架构信息
+2. **模块依赖分析**: 从 module_tree.json 分析跨仓库依赖
+3. **API 全景**: 从各模块文档提取 API 列表
+4. **技术栈统计**: 从 metadata.json 汇总技术栈使用情况
+
+### 5.4 context.md 模板
 
 ```markdown
 # 仓库上下文: {repo-name}
@@ -453,7 +603,7 @@ on:
 - 数据库ER图: [链接]
 ```
 
-### 5.4 CLAUDE.md 精简版
+### 5.5 CLAUDE.md 精简版
 
 ```markdown
 # Claude Code 入口

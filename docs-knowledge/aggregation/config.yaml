@@ -4,10 +4,12 @@ version: "2.0"
 # 聚合调度
 schedule:
   type: weekly              # daily | weekly | manual
-  day: monday               # 每周一
+  day: monday
   time: "02:00"             # UTC时间
 
+# ============================================
 # 仓库源配置
+# ============================================
 repositories:
   # 方式1: 同一组织下的仓库 (推荐)
   github_org:
@@ -15,30 +17,39 @@ repositories:
     repos:
       - name: "user-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
       - name: "bridge-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
       - name: "stablecoin-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
       - name: "rwa-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
       - name: "tokenization-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
       - name: "lending-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
       - name: "staking-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
       - name: "custody-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
       - name: "compliance-service"
         knowledge_path: ".knowledge/context.md"
+        code_derived_path: ".knowledge/code-derived/"
 
   # 方式2: 本地路径 (开发环境)
   local_paths:
@@ -55,21 +66,77 @@ repositories:
       - "custody-service"
       - "compliance-service"
 
-# 聚合任务
-tasks:
-  # 任务1: 收集变更
-  collect_changes:
-    description: "收集各仓库 context.md 的变更"
-    output: "aggregation/cache/changes.json"
+# ============================================
+# 知识源类型定义
+# ============================================
+knowledge_sources:
+  # 人工维护的上下文文档
+  context:
+    path: ".knowledge/context.md"
+    type: "manual"
+    required: true
+    description: "开发者维护的仓库上下文文档"
 
-  # 任务2: 分析影响
-  analyze_impact:
+  # AI生成的代码衍生文档
+  code_derived:
+    path: ".knowledge/code-derived/"
+    type: "auto-generated"
+    required: false
+    description: "通过 codewiki 工具自动生成的代码文档"
+    files:
+      metadata: "metadata.json"      # 生成元信息
+      overview: "overview.md"        # 仓库概览 (端到端架构)
+      module_tree: "module_tree.json" # 模块依赖树
+      modules: "*.md"                # 各模块详细文档
+
+# ============================================
+# 聚合任务定义
+# ============================================
+tasks:
+  # 任务1: 收集上下文变更
+  - name: "collect_context"
+    description: "收集各仓库 context.md 的变更"
+    source: "context"
+    output: "aggregation/cache/context-changes.json"
+    diff_detection: true
+
+  # 任务2: 收集代码衍生文档
+  - name: "collect_code_derived"
+    description: "收集各仓库 code-derived 文档"
+    source: "code_derived"
+    output: "aggregation/cache/code-derived/"
+    collect_files:
+      - "metadata.json"
+      - "overview.md"
+      - "module_tree.json"
+    # 可选: 收集所有模块文档
+    collect_all_modules: false
+
+  # 任务3: 分析变更影响
+  - name: "analyze_impact"
     description: "分析变更对项目文档的影响"
     prompt: "aggregation/scripts/prompts/analyze-changes.md"
+    inputs:
+      - "cache/context-changes.json"
+      - "cache/code-derived/"
     output: "aggregation/reports/"
 
-  # 任务3: 更新文档
-  update_docs:
+  # 任务4: 生成技术洞察
+  - name: "generate_insights"
+    description: "从 code-derived 生成跨仓库技术洞察"
+    prompt: "aggregation/scripts/prompts/generate-insights.md"
+    inputs:
+      - "cache/code-derived/*/overview.md"
+      - "cache/code-derived/*/module_tree.json"
+    output: "aggregated/technical-insights.md"
+    insights:
+      - "cross_repo_dependencies"   # 跨仓库依赖分析
+      - "tech_stack_summary"        # 技术栈汇总
+      - "api_landscape"             # API 全景
+      - "architecture_patterns"     # 架构模式识别
+
+  # 任务5: 更新项目文档
+  - name: "update_docs"
     description: "更新项目级文档"
     prompt: "aggregation/scripts/prompts/update-docs.md"
     targets:
@@ -78,14 +145,16 @@ tasks:
       - "project-web3-financial/architecture/service-catalog.md"
     mode: "suggest"  # suggest | auto
 
-  # 任务4: 同步领域文档
-  sync_domains:
+  # 任务6: 同步领域文档
+  - name: "sync_domains"
     description: "同步业务领域文档"
     source_pattern: "repos/*/context.md"
     target_pattern: "project-web3-financial/business/domain-*.md"
     mode: "merge"  # merge | overwrite
 
+# ============================================
 # 审核配置
+# ============================================
 review:
   # 自动合并 (低风险变更)
   auto_merge:
@@ -94,6 +163,7 @@ review:
       - "only_additions"           # 只有新增内容
       - "no_architecture_changes"  # 无架构变更
       - "confidence_score >= 0.9"  # AI置信度高
+      - "code_derived_only"        # 仅代码衍生文档更新
 
   # 人工审核 (高风险变更)
   manual_review:
@@ -104,8 +174,11 @@ review:
       - "architecture/*"
       - "business/domain-*.md"
       - "breaking_changes"
+      - "cross_service_impact"
 
+# ============================================
 # 通知配置
+# ============================================
 notifications:
   slack:
     enabled: true
@@ -114,21 +187,48 @@ notifications:
       - "aggregation_complete"
       - "pr_created"
       - "review_needed"
+      - "insights_generated"
 
   email:
     enabled: false
     recipients:
       - "team@example.com"
 
+# ============================================
 # AI 配置
+# ============================================
 ai:
   provider: "anthropic"
   model: "claude-sonnet-4-20250514"
   temperature: 0.3
-  max_tokens: 4096
+  max_tokens: 8192
 
   # 聚合提示词
   prompts:
     analyze: "aggregation/scripts/prompts/analyze-changes.md"
     update: "aggregation/scripts/prompts/update-docs.md"
+    insights: "aggregation/scripts/prompts/generate-insights.md"
     summarize: "aggregation/scripts/prompts/summarize.md"
+
+# ============================================
+# 输出配置
+# ============================================
+output:
+  # 聚合报告
+  reports:
+    path: "aggregation/reports/"
+    format: "markdown"
+    naming: "YYYY-MM-DD.md"
+
+  # 技术洞察
+  insights:
+    path: "aggregated/"
+    files:
+      - "technical-insights.md"
+      - "cross-repo-analysis.md"
+      - "api-landscape.md"
+
+  # 缓存
+  cache:
+    path: "aggregation/cache/"
+    retention_days: 30

@@ -19,10 +19,20 @@ on:
         options:
           - incremental
           - full
+      skip_code_derived:
+        description: '跳过 code-derived 收集'
+        required: false
+        default: false
+        type: boolean
+      all_modules:
+        description: '收集所有模块文档'
+        required: false
+        default: false
+        type: boolean
 
   # 子仓库 webhook 触发 (需配置 repository_dispatch)
   repository_dispatch:
-    types: [knowledge-update]
+    types: [knowledge-update, code-derived-update]
 
 env:
   REPOS: |
@@ -49,6 +59,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup jq for JSON processing
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
       - name: Clone sub-repositories
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -61,8 +76,8 @@ jobs:
               repos/$repo || echo "Warning: Failed to clone $repo"
           done
 
-      - name: Collect changes
-        id: collect
+      - name: Collect context.md changes
+        id: collect_context
         run: |
           changes=""
           for repo in $REPOS; do
@@ -70,37 +85,135 @@ jobs:
             if [[ -f "$context_file" ]]; then
               # 计算文件hash用于变更检测
               hash=$(md5sum "$context_file" | cut -d' ' -f1)
-              echo "$repo: $hash"
+              echo "$repo context.md: $hash"
               changes="$changes $repo"
             fi
           done
           echo "changed_repos=$changes" >> $GITHUB_OUTPUT
 
+      - name: Collect code-derived documents
+        id: collect_code_derived
+        if: ${{ github.event.inputs.skip_code_derived != 'true' }}
+        run: |
+          code_derived_repos=""
+          total_components=0
+
+          mkdir -p docs-knowledge/aggregation/cache/code-derived
+
+          for repo in $REPOS; do
+            code_derived_dir="repos/$repo/.knowledge/code-derived"
+            if [[ -d "$code_derived_dir" ]]; then
+              echo "Collecting code-derived from $repo..."
+
+              # 创建仓库缓存目录
+              repo_cache="docs-knowledge/aggregation/cache/code-derived/$repo"
+              mkdir -p "$repo_cache"
+
+              # 收集核心文件
+              for file in metadata.json overview.md module_tree.json; do
+                if [[ -f "$code_derived_dir/$file" ]]; then
+                  cp "$code_derived_dir/$file" "$repo_cache/"
+                  echo "  ✓ $file"
+                fi
+              done
+
+              # 可选: 收集所有模块文档
+              if [[ "${{ github.event.inputs.all_modules }}" == "true" ]]; then
+                for module_file in "$code_derived_dir"/*.md; do
+                  if [[ -f "$module_file" && "$(basename "$module_file")" != "overview.md" ]]; then
+                    cp "$module_file" "$repo_cache/"
+                    echo "  ✓ $(basename "$module_file")"
+                  fi
+                done
+              fi
+
+              # 提取统计信息
+              if [[ -f "$repo_cache/metadata.json" ]]; then
+                components=$(jq -r '.statistics.total_components // 0' "$repo_cache/metadata.json")
+                total_components=$((total_components + components))
+              fi
+
+              code_derived_repos="$code_derived_repos $repo"
+            fi
+          done
+
+          echo "code_derived_repos=$code_derived_repos" >> $GITHUB_OUTPUT
+          echo "total_components=$total_components" >> $GITHUB_OUTPUT
+
+      - name: Generate aggregation summary
+        id: summary
+        run: |
+          echo "## 📊 聚合统计" > aggregation_summary.md
+          echo "" >> aggregation_summary.md
+          echo "| 仓库 | context.md | code-derived | 组件数 |" >> aggregation_summary.md
+          echo "|------|------------|--------------|--------|" >> aggregation_summary.md
+
+          for repo in $REPOS; do
+            has_context="❌"
+            has_code_derived="❌"
+            components="-"
+
+            if [[ -f "repos/$repo/.knowledge/context.md" ]]; then
+              has_context="✅"
+            fi
+
+            cache_dir="docs-knowledge/aggregation/cache/code-derived/$repo"
+            if [[ -d "$cache_dir" ]]; then
+              has_code_derived="✅"
+              if [[ -f "$cache_dir/metadata.json" ]]; then
+                components=$(jq -r '.statistics.total_components // "-"' "$cache_dir/metadata.json")
+              fi
+            fi
+
+            echo "| $repo | $has_context | $has_code_derived | $components |" >> aggregation_summary.md
+          done
+
+          echo "" >> aggregation_summary.md
+          echo "**总组件数**: ${{ steps.collect_code_derived.outputs.total_components || 0 }}" >> aggregation_summary.md
+
       - name: Run AI aggregation
-        if: steps.collect.outputs.changed_repos != ''
+        if: steps.collect_context.outputs.changed_repos != '' || steps.collect_code_derived.outputs.code_derived_repos != ''
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          # 调用 Claude API 进行智能聚合
-          # 或使用 claude-code CLI
-          ./docs-knowledge/aggregation/scripts/aggregate.sh \
-            --mode ${{ github.event.inputs.mode || 'incremental' }}
+          # 构建聚合脚本参数
+          ARGS="--mode ${{ github.event.inputs.mode || 'incremental' }}"
+
+          if [[ "${{ github.event.inputs.skip_code_derived }}" == "true" ]]; then
+            ARGS="$ARGS --skip-code-derived"
+          fi
+
+          if [[ "${{ github.event.inputs.all_modules }}" == "true" ]]; then
+            ARGS="$ARGS --all-modules"
+          fi
+
+          # 执行聚合脚本
+          ./docs-knowledge/aggregation/scripts/aggregate.sh $ARGS
 
       - name: Create Pull Request
-        if: steps.collect.outputs.changed_repos != ''
+        if: steps.collect_context.outputs.changed_repos != '' || steps.collect_code_derived.outputs.code_derived_repos != ''
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "docs: 知识库自动聚合更新"
+          commit-message: "docs: 知识库自动聚合更新 (含 code-derived)"
           title: "[自动] 知识库聚合更新 - ${{ github.run_number }}"
           body: |
             ## 📚 知识库自动聚合
 
             **触发方式**: ${{ github.event_name }}
             **聚合模式**: ${{ github.event.inputs.mode || 'incremental' }}
+            **Code-Derived**: ${{ github.event.inputs.skip_code_derived == 'true' && '跳过' || '已收集' }}
 
-            ### 扫描的仓库
-            ${{ steps.collect.outputs.changed_repos }}
+            ### 📝 Context 变更
+            ${{ steps.collect_context.outputs.changed_repos || '无变更' }}
+
+            ### 🤖 Code-Derived 收集
+            ${{ steps.collect_code_derived.outputs.code_derived_repos || '无收集' }}
+
+            **总组件数**: ${{ steps.collect_code_derived.outputs.total_components || 0 }}
+
+            ### 📊 聚合统计
+            请查看 `aggregation_summary.md` 了解详情
 
             ### 变更内容
             请查看 Files changed 了解具体更新
@@ -111,6 +224,7 @@ jobs:
           labels: |
             documentation
             automated
+            code-derived
           reviewers: |
             architect
             tech-lead
@@ -123,6 +237,9 @@ jobs:
           channel: '#knowledge-updates'
           text: |
             知识库聚合 ${{ job.status }}
+            - Context 变更: ${{ steps.collect_context.outputs.changed_repos || '无' }}
+            - Code-Derived: ${{ steps.collect_code_derived.outputs.code_derived_repos || '无' }}
+            - 总组件数: ${{ steps.collect_code_derived.outputs.total_components || 0 }}
             查看: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
