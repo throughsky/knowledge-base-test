@@ -1,0 +1,134 @@
+# 知识聚合配置
+version: "2.0"
+
+# 聚合调度
+schedule:
+  type: weekly              # daily | weekly | manual
+  day: monday               # 每周一
+  time: "02:00"             # UTC时间
+
+# 仓库源配置
+repositories:
+  # 方式1: 同一组织下的仓库 (推荐)
+  github_org:
+    org: "your-org"
+    repos:
+      - name: "user-service"
+        knowledge_path: ".knowledge/context.md"
+
+      - name: "bridge-service"
+        knowledge_path: ".knowledge/context.md"
+
+      - name: "stablecoin-service"
+        knowledge_path: ".knowledge/context.md"
+
+      - name: "rwa-service"
+        knowledge_path: ".knowledge/context.md"
+
+      - name: "tokenization-service"
+        knowledge_path: ".knowledge/context.md"
+
+      - name: "lending-service"
+        knowledge_path: ".knowledge/context.md"
+
+      - name: "staking-service"
+        knowledge_path: ".knowledge/context.md"
+
+      - name: "custody-service"
+        knowledge_path: ".knowledge/context.md"
+
+      - name: "compliance-service"
+        knowledge_path: ".knowledge/context.md"
+
+  # 方式2: 本地路径 (开发环境)
+  local_paths:
+    enabled: true
+    base_path: "../repos"
+    repos:
+      - "user-service"
+      - "bridge-service"
+      - "stablecoin-service"
+      - "rwa-service"
+      - "tokenization-service"
+      - "lending-service"
+      - "staking-service"
+      - "custody-service"
+      - "compliance-service"
+
+# 聚合任务
+tasks:
+  # 任务1: 收集变更
+  collect_changes:
+    description: "收集各仓库 context.md 的变更"
+    output: "aggregation/cache/changes.json"
+
+  # 任务2: 分析影响
+  analyze_impact:
+    description: "分析变更对项目文档的影响"
+    prompt: "aggregation/scripts/prompts/analyze-changes.md"
+    output: "aggregation/reports/"
+
+  # 任务3: 更新文档
+  update_docs:
+    description: "更新项目级文档"
+    prompt: "aggregation/scripts/prompts/update-docs.md"
+    targets:
+      - "project-web3-financial/ARCHITECTURE.md"
+      - "project-web3-financial/BUSINESS.md"
+      - "project-web3-financial/architecture/service-catalog.md"
+    mode: "suggest"  # suggest | auto
+
+  # 任务4: 同步领域文档
+  sync_domains:
+    description: "同步业务领域文档"
+    source_pattern: "repos/*/context.md"
+    target_pattern: "project-web3-financial/business/domain-*.md"
+    mode: "merge"  # merge | overwrite
+
+# 审核配置
+review:
+  # 自动合并 (低风险变更)
+  auto_merge:
+    enabled: true
+    conditions:
+      - "only_additions"           # 只有新增内容
+      - "no_architecture_changes"  # 无架构变更
+      - "confidence_score >= 0.9"  # AI置信度高
+
+  # 人工审核 (高风险变更)
+  manual_review:
+    reviewers:
+      - "@architect"
+      - "@tech-lead"
+    required_for:
+      - "architecture/*"
+      - "business/domain-*.md"
+      - "breaking_changes"
+
+# 通知配置
+notifications:
+  slack:
+    enabled: true
+    channel: "#knowledge-updates"
+    on:
+      - "aggregation_complete"
+      - "pr_created"
+      - "review_needed"
+
+  email:
+    enabled: false
+    recipients:
+      - "team@example.com"
+
+# AI 配置
+ai:
+  provider: "anthropic"
+  model: "claude-sonnet-4-20250514"
+  temperature: 0.3
+  max_tokens: 4096
+
+  # 聚合提示词
+  prompts:
+    analyze: "aggregation/scripts/prompts/analyze-changes.md"
+    update: "aggregation/scripts/prompts/update-docs.md"
+    summarize: "aggregation/scripts/prompts/summarize.md"

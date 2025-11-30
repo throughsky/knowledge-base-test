@@ -1,0 +1,72 @@
+# 知识聚合配置
+
+version: "1.0"
+
+aggregation:
+  schedule: "weekly"           # 每周聚合
+  trigger: "manual"            # 也可手动触发
+
+  # 聚合来源
+  sources:
+    - repo: "stablecoin-service"
+      path: "../repos/stablecoin-service"
+      knowledge_path: ".knowledge/context.md"
+
+    - repo: "rwa-service"
+      path: "../repos/rwa-service"
+      knowledge_path: ".knowledge/context.md"
+
+    - repo: "bridge-service"
+      path: "../repos/bridge-service"
+      knowledge_path: ".knowledge/context.md"
+
+    - repo: "compliance-service"
+      path: "../repos/compliance-service"
+      knowledge_path: ".knowledge/context.md"
+
+    - repo: "custody-service"
+      path: "../repos/custody-service"
+      knowledge_path: ".knowledge/context.md"
+
+    - repo: "lending-service"
+      path: "../repos/lending-service"
+      knowledge_path: ".knowledge/context.md"
+
+    - repo: "staking-service"
+      path: "../repos/staking-service"
+      knowledge_path: ".knowledge/context.md"
+
+    - repo: "tokenization-service"
+      path: "../repos/tokenization-service"
+      knowledge_path: ".knowledge/context.md"
+
+    - repo: "user-service"
+      path: "../repos/user-service"
+      knowledge_path: ".knowledge/context.md"
+
+  # 聚合任务
+  tasks:
+    - name: "repo_summary"
+      description: "从各仓库context.md生成摘要"
+      output: "aggregated/repo-summaries/"
+
+    - name: "service_topology"
+      description: "分析服务依赖关系"
+      output: "architecture/service-catalog.md"
+
+    - name: "cross_repo_analysis"
+      description: "跨仓库模式分析"
+      output: "aggregated/cross-repo-analysis.md"
+
+# 审核配置
+review:
+  auto_merge:
+    - "aggregated/repo-summaries/"
+
+  manual_review:
+    - "architecture/service-catalog.md"
+    - "business/domain-*.md"
+
+  reviewers:
+    - "@architect"
+    - "@tech-lead"

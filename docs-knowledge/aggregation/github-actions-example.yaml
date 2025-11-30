@@ -1,0 +1,128 @@
+# .github/workflows/knowledge-aggregation.yml
+# 将此文件复制到知识库仓库的 .github/workflows/ 目录
+
+name: Knowledge Aggregation
+
+on:
+  # 定时触发: 每周一凌晨2点 (UTC)
+  schedule:
+    - cron: '0 2 * * 1'
+
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '聚合模式'
+        required: true
+        default: 'incremental'
+        type: choice
+        options:
+          - incremental
+          - full
+
+  # 子仓库 webhook 触发 (需配置 repository_dispatch)
+  repository_dispatch:
+    types: [knowledge-update]
+
+env:
+  REPOS: |
+    user-service
+    bridge-service
+    stablecoin-service
+    rwa-service
+    tokenization-service
+    lending-service
+    staking-service
+    custody-service
+    compliance-service
+
+jobs:
+  aggregate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout knowledge base
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clone sub-repositories
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p repos
+          for repo in $REPOS; do
+            echo "Cloning $repo..."
+            git clone --depth 1 \
+              https://github.com/${{ github.repository_owner }}/$repo.git \
+              repos/$repo || echo "Warning: Failed to clone $repo"
+          done
+
+      - name: Collect changes
+        id: collect
+        run: |
+          changes=""
+          for repo in $REPOS; do
+            context_file="repos/$repo/.knowledge/context.md"
+            if [[ -f "$context_file" ]]; then
+              # 计算文件hash用于变更检测
+              hash=$(md5sum "$context_file" | cut -d' ' -f1)
+              echo "$repo: $hash"
+              changes="$changes $repo"
+            fi
+          done
+          echo "changed_repos=$changes" >> $GITHUB_OUTPUT
+
+      - name: Run AI aggregation
+        if: steps.collect.outputs.changed_repos != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # 调用 Claude API 进行智能聚合
+          # 或使用 claude-code CLI
+          ./docs-knowledge/aggregation/scripts/aggregate.sh \
+            --mode ${{ github.event.inputs.mode || 'incremental' }}
+
+      - name: Create Pull Request
+        if: steps.collect.outputs.changed_repos != ''
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: 知识库自动聚合更新"
+          title: "[自动] 知识库聚合更新 - ${{ github.run_number }}"
+          body: |
+            ## 📚 知识库自动聚合
+
+            **触发方式**: ${{ github.event_name }}
+            **聚合模式**: ${{ github.event.inputs.mode || 'incremental' }}
+
+            ### 扫描的仓库
+            ${{ steps.collect.outputs.changed_repos }}
+
+            ### 变更内容
+            请查看 Files changed 了解具体更新
+
+            ---
+            > 🤖 此 PR 由 AI 聚合系统自动生成
+          branch: auto/knowledge-aggregation
+          labels: |
+            documentation
+            automated
+          reviewers: |
+            architect
+            tech-lead
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#knowledge-updates'
+          text: |
+            知识库聚合 ${{ job.status }}
+            查看: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
