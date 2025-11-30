@@ -1,0 +1,27 @@
+{
+    "generation_info": {
+        "timestamp": "2025-11-25T16:34:44.300314",
+        "main_model": "kimi-k2-turbo-preview",
+        "generator_version": "1.0.0",
+        "repo_path": "/Users/throughsky/workspace_claude/sgb-project/fusioncore-fork1",
+        "commit_id": null
+    },
+    "statistics": {
+        "total_components": 1995,
+        "leaf_nodes": 218,
+        "max_depth": 2
+    },
+    "files_generated": [
+        "overview.md",
+        "module_tree.json",
+        "first_module_tree.json",
+        "wecommon.md",
+        "dweb-common.md",
+        "trade-common.md",
+        "custodian-common.md",
+        "dweb-core.md",
+        "common-gateway.md",
+        "custodian-core.md",
+        "common-auth.md"
+    ]
+}

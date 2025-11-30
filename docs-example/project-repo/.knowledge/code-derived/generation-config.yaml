@@ -1,0 +1,426 @@
+# 代码衍生知识生成配置 (Code-Derived Knowledge Generation Config)
+# 本文件定义了如何从代码自动生成知识文档
+
+version: "1.0"
+updated: "2025-11-30"
+
+# ============================================================
+# 仓库信息
+# ============================================================
+repository:
+  name: "web3-financial-platform"
+  type: "monorepo"                    # monorepo | single
+  primary_language: "java"
+  secondary_languages:
+    - "typescript"
+    - "go"
+    - "rust"
+  frameworks:
+    - "spring-boot-3.x"
+    - "spring-cloud-2023"
+    - "react-18"
+
+# ============================================================
+# AI模型配置
+# ============================================================
+model:
+  # 主模型（用于复杂分析和总结）
+  primary:
+    provider: "anthropic"
+    model_id: "claude-3-sonnet"
+    max_tokens: 8192
+    temperature: 0.3
+
+  # 辅助模型（用于简单提取和格式化）
+  secondary:
+    provider: "openai"
+    model_id: "gpt-4-turbo"
+    max_tokens: 4096
+    temperature: 0.2
+
+  # 嵌入模型（用于相似性搜索）
+  embedding:
+    provider: "openai"
+    model_id: "text-embedding-3-small"
+    dimension: 1536
+
+# ============================================================
+# 分析策略
+# ============================================================
+analysis:
+  # 代码解析
+  parsing:
+    # Java解析配置
+    java:
+      parser: "javaparser"
+      include_javadoc: true
+      include_annotations: true
+      resolve_types: true
+
+    # TypeScript解析配置
+    typescript:
+      parser: "typescript-estree"
+      include_jsdoc: true
+      include_decorators: true
+
+    # Go解析配置
+    go:
+      parser: "go-ast"
+      include_comments: true
+
+  # 依赖分析
+  dependency:
+    analyze_imports: true
+    analyze_calls: true
+    build_graph: true
+    detect_cycles: true
+
+  # 模式识别
+  patterns:
+    detect_design_patterns: true
+    detect_antipatterns: true
+    detect_code_smells: true
+    custom_patterns:
+      - name: "repository_pattern"
+        indicators: ["*Repository", "*Mapper", "*DAO"]
+      - name: "service_pattern"
+        indicators: ["*Service", "*ServiceImpl"]
+      - name: "controller_pattern"
+        indicators: ["*Controller", "@RestController"]
+
+# ============================================================
+# 生成规则
+# ============================================================
+generation:
+  # 层级策略
+  hierarchy:
+    # 叶子节点：类/文件
+    leaf:
+      min_lines: 20              # 最小行数才生成文档
+      include:
+        - "public classes"
+        - "interfaces"
+        - "enums"
+      exclude:
+        - "*DTO"                 # DTO自动汇总到实体文档
+        - "*VO"
+        - "*Request"
+        - "*Response"
+
+    # 组件节点：包/目录
+    component:
+      aggregation: "bottom-up"    # 自底向上聚合
+      summary_length: 500         # 摘要字数
+      include_diagram: true
+
+    # 模块节点：子项目
+    module:
+      include_architecture: true
+      include_api_list: true
+      include_data_flow: true
+      include_dependencies: true
+
+    # 根节点：仓库
+    root:
+      include_overview: true
+      include_quickstart: true
+      include_architecture_diagram: true
+      include_module_matrix: true
+
+  # 输出格式
+  output:
+    format: "markdown"
+    language: "zh-CN"             # zh-CN | en-US
+    code_blocks: true
+    mermaid_diagrams: true
+    table_of_contents: true
+
+    # 文件命名
+    naming:
+      module_doc: "{module-name}.md"
+      component_doc: "{component-name}.md"
+      overview: "overview.md"
+
+  # 内容模板
+  templates:
+    module:
+      sections:
+        - "简介"
+        - "核心功能"
+        - "架构概览"
+        - "模块依赖关系"
+        - "核心组件详解"
+        - "数据流架构"
+        - "API列表"
+        - "配置说明"
+        - "集成点"
+
+    component:
+      sections:
+        - "职责描述"
+        - "公开接口"
+        - "依赖关系"
+        - "使用示例"
+
+# ============================================================
+# 模块范围
+# ============================================================
+modules:
+  # 包含的模块
+  include:
+    # 公共模块
+    - path: "common/*"
+      type: "infrastructure"
+      priority: "high"
+
+    # 业务模块
+    - path: "stablecoin/*"
+      type: "business"
+      domain: "stablecoin"
+
+    - path: "tokenization/*"
+      type: "business"
+      domain: "tokenization"
+
+    - path: "custody/*"
+      type: "business"
+      domain: "custody"
+
+    - path: "rwa/*"
+      type: "business"
+      domain: "rwa"
+
+    - path: "staking/*"
+      type: "business"
+      domain: "staking"
+
+    - path: "lending/*"
+      type: "business"
+      domain: "lending"
+
+    - path: "bridge/*"
+      type: "business"
+      domain: "bridge"
+
+    - path: "compliance/*"
+      type: "business"
+      domain: "compliance"
+
+  # 排除的路径
+  exclude:
+    - "**/test/**"
+    - "**/tests/**"
+    - "**/__tests__/**"
+    - "**/generated/**"
+    - "**/node_modules/**"
+    - "**/target/**"
+    - "**/build/**"
+    - "**/.git/**"
+
+# ============================================================
+# 增量更新
+# ============================================================
+incremental:
+  enabled: true
+
+  # 触发条件
+  triggers:
+    # Git钩子
+    git_hook:
+      enabled: true
+      events:
+        - "post-commit"
+        - "post-merge"
+
+    # 定时任务
+    scheduled:
+      enabled: true
+      cron: "0 2 * * *"           # 每天凌晨2点
+
+    # 手动触发
+    manual:
+      enabled: true
+      command: "codewiki generate"
+
+  # 更新策略
+  strategy:
+    # 变更检测
+    change_detection:
+      method: "git-diff"           # git-diff | file-hash | timestamp
+      since: "last-generation"
+
+    # 影响范围
+    scope:
+      changed_files: true          # 变更的文件
+      dependent_components: true   # 依赖该组件的上游
+      parent_modules: true         # 父模块需要重新聚合
+
+    # 阈值
+    thresholds:
+      min_change_ratio: 0.1        # 变更超过10%才重新生成
+      max_unchanged_days: 30       # 超过30天强制重新生成
+
+# ============================================================
+# 质量检查
+# ============================================================
+validation:
+  # 链接检查
+  link_check:
+    enabled: true
+    check_internal: true
+    check_external: false
+
+  # 一致性检查
+  consistency_check:
+    enabled: true
+    rules:
+      - "模块文档必须存在对应的代码目录"
+      - "API文档必须与实际接口匹配"
+      - "依赖关系必须与实际import一致"
+
+  # 完整性检查
+  completeness_check:
+    enabled: true
+    required_sections:
+      - "简介"
+      - "核心功能"
+      - "依赖关系"
+
+  # 代码一致性
+  code_sync:
+    enabled: true
+    warn_on_drift: true
+    max_drift_days: 7              # 超过7天未同步发出警告
+
+# ============================================================
+# AI索引
+# ============================================================
+ai_index:
+  enabled: true
+
+  # 索引类型
+  indexes:
+    # 组件索引
+    component:
+      enabled: true
+      fields:
+        - "name"
+        - "type"
+        - "module"
+        - "responsibilities"
+        - "dependencies"
+
+    # API索引
+    api:
+      enabled: true
+      fields:
+        - "path"
+        - "method"
+        - "module"
+        - "description"
+        - "parameters"
+        - "responses"
+
+    # 实体索引
+    entity:
+      enabled: true
+      fields:
+        - "name"
+        - "module"
+        - "fields"
+        - "relationships"
+
+    # 模式索引
+    pattern:
+      enabled: true
+      fields:
+        - "pattern_name"
+        - "locations"
+        - "description"
+
+  # 向量存储（用于语义搜索）
+  vector_store:
+    enabled: true
+    provider: "local"              # local | pinecone | weaviate
+    chunk_size: 1000
+    chunk_overlap: 200
+
+# ============================================================
+# 输出配置
+# ============================================================
+output:
+  # 输出目录
+  directory: ".knowledge/code-derived"
+
+  # 文件结构
+  structure:
+    overview: "overview/"
+    modules: "modules/"
+    cross_cutting: "cross-cutting/"
+    ai_index: "ai-index/"
+
+  # 元数据
+  metadata:
+    generate: true
+    include:
+      - "generation_timestamp"
+      - "model_info"
+      - "statistics"
+      - "files_generated"
+
+  # 清理策略
+  cleanup:
+    remove_orphans: true           # 删除无对应代码的文档
+    archive_old: true              # 归档旧版本
+    retention_days: 90             # 保留90天
+
+# ============================================================
+# 集成配置
+# ============================================================
+integration:
+  # 与L3人工文档的集成
+  l3_integration:
+    enabled: true
+    # 发现偏差时的动作
+    on_drift:
+      notify: true
+      create_issue: false
+      auto_update: false
+
+  # 与L4演进层的集成
+  l4_integration:
+    enabled: true
+    # 作为演进输入
+    provide_to:
+      - "技术债分析"
+      - "重构建议"
+      - "复杂度趋势"
+
+  # CI/CD集成
+  cicd:
+    enabled: true
+    # 失败时的动作
+    on_failure:
+      block_merge: false
+      notify: true
+
+# ============================================================
+# 通知配置
+# ============================================================
+notifications:
+  # 生成完成通知
+  on_complete:
+    enabled: true
+    channels:
+      - type: "slack"
+        webhook: "${SLACK_WEBHOOK_URL}"
+      - type: "email"
+        recipients: ["tech-lead@company.com"]
+
+  # 错误通知
+  on_error:
+    enabled: true
+    channels:
+      - type: "slack"
+        webhook: "${SLACK_WEBHOOK_URL}"
+        mention: "@oncall"
