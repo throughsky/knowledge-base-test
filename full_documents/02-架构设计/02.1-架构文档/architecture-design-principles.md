@@ -4,7 +4,7 @@ created: 2024-01-01
 updated: 2024-11-30
 version: 2.0
 status: 已发布
-tags: [架构设计, 设计原则, 项目规范]
+tags: [架构设计, 设计原则, 项目规范, Spring Boot, 代码规范]
 ---
 
 # 架构设计原则
@@ -30,7 +30,7 @@ src/
 │   ├── controller/                    # REST控制器目录
 │   ├── service/                       # 业务逻辑服务目录
 │   │   └── impl/                      # 服务实现类目录
-│   ├── entity/                        # 实体类目录（对应数据库表）
+│   ├── entity/                        # 实体类目录（对应数据库表结构）
 │   ├── mapper/                        # Mapper接口目录（MyBatis）
 │   ├── dto/                           # 数据传输对象目录
 │   ├── enums/                         # 枚举类目录（必须以Enum.java结尾）
@@ -63,20 +63,21 @@ src/
 
 **核心框架**：
 - Spring Boot（应用启动、自动装配、生产级特性）
-- Spring Framework（IoC、AOP、事务、Web MVC）
-- Spring Security（认证、授权、过滤链）
+- Spring Framework（依赖注入、AOP、事务、Web MVC）
+- Spring Security（认证、授权、过滤链、方法级安全）
 
 **数据访问**：
 - MyBatis/MyBatis-Spring（半自动化SQL映射，注解模式）
 - MySQL + mysql-connector-j
+- 数据库设计规范：参考 `@rules/02-design/database.mdc`
 
 **API与文档**：
-- Spring MVC（RESTful API、请求映射、参数校验）
-- Springdoc OpenAPI（OpenAPI 3文档生成）
+- Spring MVC（RESTful API、请求映射、拦截器、参数校验）
+- Springdoc OpenAPI（OpenAPI 3文档生成、Swagger UI）
+- Jakarta Validation（Bean参数校验：@Valid、@NotNull等）
 
 **其他组件**：
-- Jakarta Validation（Bean参数校验）
-- Jackson（JSON序列化/反序列化）
+- Jackson（JSON序列化/反序列化、时间格式、忽略策略）
 - Spring Cache（方法级缓存）
 - SLF4J + Logback（日志）
 - Spring Boot Actuator（健康检查、指标）
@@ -949,11 +950,22 @@ const techDebtRegister = [
 ## 附录
 
 ### 相关文档
-- [技术栈规范](../05-技术栈规范/)
-- [SDD 软件设计规范](../02-SDD软件设计规范/)
-- [微服务最佳实践](../05-技术栈规范/微服务最佳实践.md)
+- [技术栈规范](../02.4-技术选型/technology-stack.md)
+- [设计模式指南](../02.3-设计模式/design-patterns-overview.md)
+- [微服务最佳实践](../02.2-架构决策记录/adr-003-microservices.md)
 
 ### 工具推荐
 - **架构图**: draw.io, PlantUML
 - **API 设计**: Swagger/OpenAPI
 - **技术雷达**: ThoughtWorks Technology Radar
+
+### 版本历史
+
+| 版本 | 日期 | 更新内容 | 更新人 |
+|------|------|----------|--------|
+| 2.0 | 2024-11-30 | 新增 @rules/ 目录规范集成 | 架构团队 |
+| 1.0 | 2024-01-01 | 初始版本创建 | 架构团队 |
+
+**维护者**: 架构团队
+**审核周期**: 每季度
+**状态**: 持续更新中
