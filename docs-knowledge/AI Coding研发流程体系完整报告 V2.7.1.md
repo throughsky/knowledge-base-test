@@ -1,25 +1,16 @@
-# AI Coding 研发流程体系
 
-**版本**: 2.7
-**创建日期**: 2025-12-01
-**更新日期**: 2025-12-01
-**作者**: 架构团队
-**状态**: 设计中
+# AI Coding研发流程体系完整报告 V2.7.1
 
----
+## 执行摘要
 
-## 1. 概述
-
-### 1.1 设计目标
-
-本文档定义了一套以 **SDD（规范驱动开发）** 和 **TDD（测试驱动开发）** 为核心驱动力的 AI Coding 研发流程体系，结合多级知识空间架构和统一工具链基础设施，实现从"人工编码"到"AI协同编码"的研发模式转型。
+本文档定义了以 **SDD（规范驱动开发）** 和 **TDD（测试驱动开发）** 为核心驱动力的 AI Coding 研发流程体系，结合多级知识空间架构和统一工具链基础设施，实现从"人工编码"到"AI协同编码"的研发模式转型。
 
 ### 关键成功要素
 
 **技术层面**：
 
-- 规范与测试的双重驱动确保质量
-- 三层知识架构支撑AI理解，对于开发同学接触的仓库级知识库尽量AI自动化，并且降低仓库级文档数量，不增加维护负担。
+- 规范与测试的双重驱动确保质量，约束rule先行，见效最快。
+- 三层知识架构支撑AI理解，仓库级知识库尽量AI自动化，降低维护负担
 - 统一工具链降低认知负担
 - 数据驱动的持续优化，知识库生命周期管理
 
@@ -29,37 +20,35 @@
 - 质量第一的文化建设
 - 团队对AI协作的认同
 
-**策略**
+**核心策略**：
 
-* AI不是万能的，我们能做的先做了。例如强化架构要求，强化质量和测试要求，强化个级别的约束要求。
-* 保持跟随，例如社区的codebase，其他领域的subagent模式等一直在演进中。
+- AI不是万能的，我们能做的先做，例如强化架构要求、强化质量和测试要求、强化各级别的约束要求
+- 保持跟随，例如社区的codebase、其他领域的subagent模式等一直在演进中
 
 
-### 可视化图表
-
-本章节提供三张核心可视化图表，帮助快速理解AI Coding研发流程体系的全貌。
-
-#### 全景思维导图
+### 全景思维导图
 
 展示整个体系的核心构成，包括核心理念（SDD、TDD、D-R-O）、三层知识空间、统一工具链、质量保障体系和核心价值指标。
 
 ![AI Coding研发流程体系全景思维导图](https://cdn.gooo.ai/gen-images/a76210201bea534c12b06eeb80f946c0a0601308cdf2c7a831f2a20f446e9fda.svg)
 
-#### 研发流程架构图
+### 研发流程架构图--需要增加知识库增强环节
 
 完整呈现从需求到知识沉淀的端到端流程，包括需求阶段、设计阶段（含九大原则合规检查）、开发阶段（TDD红绿重构循环）、Code Review双层审查机制，以及知识沉淀归档流程。
 
 ![AI Coding研发流程架构图](https://cdn.gooo.ai/gen-images/51740df8f5c2510ff0e71b93d34d372e87be4e55a0a08888676987e7ac37c255.svg)
 
-#### D-R-O人机协作框架图
+---
 
-清晰展示人机职责边界：委派（AI独立完成）、审查（人类验证）、掌控（人类主导），以及任务分类的判断决策树（标准化？可逆？高风险？）。
+## 第一章：概述与核心理念
 
-![D-R-O人机协作框架图](https://cdn.gooo.ai/gen-images/0ddd1f61fd432b0cc5266e63b2cfdba74835abb4179c3fb5a3bcc58ee6a58101.svg)
+### 1.1 设计目标
 
-### 1.2 核心理念
+AI Coding 研发流程体系旨在通过规范化、自动化和智能化手段，提升软件研发效能，确保代码质量，实现人机协同的高效开发模式。
 
-```
+### 1.2 核心理念架构
+
+```plaintext
 ┌─────────────────────────────────────────────────────────────────┐
 │                    AI Coding 研发流程体系                        │
 ├─────────────────────────────────────────────────────────────────┤
@@ -89,11 +78,11 @@
 | **工具统一** | 统一的AI工具链和开发环境，降低认知负担         |
 | **持续改进** | 数据驱动的效能度量和流程优化                   |
 
-### 1.4 委派-审查-掌控框架 (Delegate-Review-Own)
+### 1.4 委派-审查-掌控框架（D-R-O）
 
 AI 协同开发的核心是明确人机职责边界。在 SDLC 每个阶段，采用 **D-R-O 框架**定义 AI 与人类的分工：
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────────┐
 │                委派-审查-掌控 (D-R-O) 框架                        │
 ├─────────────────────────────────────────────────────────────────┤
@@ -138,7 +127,7 @@ AI 协同开发的核心是明确人机职责边界。在 SDLC 每个阶段，�
 
 ---
 
-## 2. 流程重塑
+## 第二章：流程重塑
 
 ### 2.1 SDD 规范驱动开发【核心】
 
@@ -176,7 +165,7 @@ SDD的核心理念是"**设计即约束**"——通过清晰的功能规格文�
 
 基于 Speckit 的标准化工作流：
 
-```
+```plaintext
 ┌──────────────────────────────────────────────────────────────┐
 │                    SDD 工作流程                               │
 ├──────────────────────────────────────────────────────────────┤
@@ -197,29 +186,29 @@ SDD的核心理念是"**设计即约束**"——通过清晰的功能规格文�
 
 **工作流命令**：
 
-| 命令                   | 功能         | 输入            | 输出               |
-| ---------------------- | ------------ | --------------- | ------------------ |
-| `/speckit.specify`   | 创建功能规格 | 自然语言描述    | spec.md            |
-| `/speckit.plan`      | 生成实施计划 | spec.md         | plan.md            |
-| `/speckit.tasks`     | 生成任务列表 | plan.md         | tasks.md           |
-| `/speckit.implement` | 执行代码实现 | tasks.md        | 代码文件           |
-| `/speckit.analyze`   | 跨产物分析   | spec/plan/tasks | 一致性报告         |
-| `/speckit.clarify`   | 需求澄清     | spec.md         | 澄清问题           |
-| `/speckit.archive`   | 知识沉淀归档 | 已实现功能      | registry.json, ADR |
+| 命令                   | 功能         | 输入                     | 输出                     |
+| ---------------------- | ------------ | ------------------------ | ------------------------ |
+| `/speckit.specify`   | 创建功能规格 | 自然语言描述             | [spec.md](http://spec.md)   |
+| `/speckit.plan`      | 生成实施计划 | [spec.md](http://spec.md)   | [plan.md](http://plan.md)   |
+| `/speckit.tasks`     | 生成任务列表 | [plan.md](http://plan.md)   | [tasks.md](http://tasks.md) |
+| `/speckit.implement` | 执行代码实现 | [tasks.md](http://tasks.md) | 代码文件                 |
+| `/speckit.analyze`   | 跨产物分析   | spec/plan/tasks          | 一致性报告               |
+| `/speckit.clarify`   | 需求澄清     | [spec.md](http://spec.md)   | 澄清问题                 |
+| `/speckit.archive`   | 知识沉淀归档 | 已实现功能               | registry.json, ADR       |
 
 #### 2.1.3 知识库集成增强
 
 **各阶段知识库读取**：
 
-| 阶段                | 知识库层级 | 读取内容                      | 用途                |
-| ------------------- | ---------- | ----------------------------- | ------------------- |
-| **specify**   | L1 项目级  | glossary.md, domain-model.md  | 术语规范、实体识别  |
-| **specify**   | L2 仓库级  | context.md, overview.md       | 模块边界、避免重复  |
-| **plan**      | L0 企业级  | architecture-principles.md    | 架构合规检查        |
-| **plan**      | L1 项目级  | tech-stack.md, ADR-*.md       | 技术选型、ADR一致性 |
-| **plan**      | L2 仓库级  | module_tree.json, {module}.md | 路径规范、组件复用  |
-| **tasks**     | L2 仓库级  | module_tree.json              | 文件路径验证        |
-| **implement** | L2 仓库级  | {module}.md                   | 代码模式参考        |
+| 阶段                | 知识库层级 | 读取内容                                                               | 用途                |
+| ------------------- | ---------- | ---------------------------------------------------------------------- | ------------------- |
+| **specify**   | L1 项目级  | [glossary.md](http://glossary.md), [domain-model.md](http://domain-model.md) | 术语规范、实体识别  |
+| **specify**   | L2 仓库级  | [context.md](http://context.md), [overview.md](http://overview.md)           | 模块边界、避免重复  |
+| **plan**      | L0 企业级  | [architecture-principles.md](http://architecture-principles.md)           | 架构合规检查        |
+| **plan**      | L1 项目级  | [tech-stack.md](http://tech-stack.md), ADR-*.md                           | 技术选型、ADR一致性 |
+| **plan**      | L2 仓库级  | module_tree.json, {module}.md                                          | 路径规范、组件复用  |
+| **tasks**     | L2 仓库级  | module_tree.json                                                       | 文件路径验证        |
+| **implement** | L2 仓库级  | {module}.md                                                            | 代码模式参考        |
 
 #### 2.1.4 架构合规检查
 
@@ -237,399 +226,58 @@ SDD的核心理念是"**设计即约束**"——通过清晰的功能规格文�
 | VIII. 简洁性    | YAGNI、依赖管理      | MEDIUM   |
 | IX. 事件驱动    | 事件监听、幂等性     | HIGH     |
 
-**合规检查输出**：
+**合规检查输出示例**：
 
 ```markdown
 ## Architecture Compliance Check
 
-| 原则 | 适用性 | 检查结果 | 说明 |
-|------|--------|----------|------|
-| I. TDD | ✓ | ✅ | 已规划单元测试和集成测试 |
-| III. 微服务 | ✓ | ⚠️ | 技术栈合规，分层需调整 |
-| IV. 安全 | ✓ | ✅ | 已规划输入校验和审计日志 |
+| 原则        | 适用性 | 检查结果 | 说明                         |
+| ----------- | ------ | -------- | ---------------------------- |
+| I. TDD      | ✓      | ✅       | 已规划单元测试和集成测试     |
+| III. 微服务 | ✓      | ⚠️       | 技术栈合规，分层需调整       |
+| IV. 安全    | ✓      | ✅       | 已规划输入校验和审计日志     |
 
 **处理规则**: ✅全部合规→继续 | ⚠️需调整→修改后继续 | ❌违规→阻止流程
 ```
 
-#### 2.1.5 AI 协同 SDD 实践
+#### 2.1.5 知识生命周期管理
 
-**Prompt 模板化**：
+**Feature Registry（特性注册表）** 解决文档"一次性使用"问题，实现历史决策复用和跨需求关联：
 
-```markdown
-## 任务
-根据以下规格文档实现 [功能名称]
-
-## 约束条件
-- 技术栈: [具体技术栈]
-- 代码行数: 不超过 [N] 行
-- 排除功能: [明确排除列表]
-
-## 输入规格
-[粘贴 spec.md 相关内容]
-
-## 输出要求
-- 遵循项目编码规范
-- 包含单元测试
-- 提供使用示例
-```
-
-**防止 AI 过度联想**：
-
-| 策略                 | 说明                 | 示例                                 |
-| -------------------- | -------------------- | ------------------------------------ |
-| **负向提示**   | 明确列出不需要的功能 | "不需要：密码重置、邮箱验证、OAuth"  |
-| **领域边界**   | 定义功能边界         | "仅限用户基础信息CRUD，不涉及权限"   |
-| **单一事实源** | 限制输入输出         | "输入：用户名+密码，输出：JWT token" |
-
-**渐进式迭代**：
-
-```
-第1轮: 核心数据模型
-    ↓
-第2轮: 基础CRUD接口
-    ↓
-第3轮: 业务逻辑层
-    ↓
-第4轮: 验证和错误处理
-    ↓
-第5轮: 测试用例补充
-```
-
-#### 2.1.6 知识生命周期管理【增强】
-
-SpecKit 生成的文档（spec.md, plan.md, tasks.md）存在"一次性使用"的问题，导致历史决策丢失、跨需求信息孤岛。本节定义知识沉淀与复用机制。
-
-##### 2.1.6.1 问题陈述
-
-**当前知识断层**：
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    当前文档生命周期                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  需求A                                                          │
-│    ↓                                                            │
-│  /speckit.specify → spec.md ─┐                                  │
-│    ↓                         │                                  │
-│  /speckit.plan → plan.md ────┼──→ features/feature-a/ (归档)    │
-│    ↓                         │                                  │
-│  /speckit.tasks → tasks.md ──┘                                  │
-│    ↓                                                            │
-│  /speckit.implement → 代码实现                                   │
-│    ↓                                                            │
-│  ══════════════════════════════════════════════════════════════ │
-│                     知识断层 (Knowledge Gap)                     │
-│  ══════════════════════════════════════════════════════════════ │
-│    ↓                                                            │
-│  需求B (新需求)                                                  │
-│    ↓                                                            │
-│  /speckit.specify → 无法访问需求A的决策历史                       │
-│    ↓                                                            │
-│  可能产生：重复设计 | 决策冲突 | 架构不一致                        │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**核心问题**：
-
-| 问题           | 影响                   | 严重程度 |
-| -------------- | ---------------------- | -------- |
-| 文档一次性使用 | 历史决策丢失，无法复用 | 🔴 高    |
-| 无跨需求关联   | 相关需求间信息孤岛     | 🔴 高    |
-| 知识未沉淀     | 架构决策散落各处       | 🟡 中    |
-| 缺乏版本演进   | 设计演变历史不可追溯   | 🟡 中    |
-
-##### 2.1.6.2 Feature Registry（特性注册表）
-
-**数据结构**：
+**数据结构示例**：
 
 ```json
-// features/registry.json
 {
   "version": "1.0",
-  "last_updated": "2025-01-15T10:30:00Z",
   "features": [
     {
       "id": "user-authentication",
       "name": "用户认证系统",
       "status": "implemented",
-      "created_at": "2025-01-10",
-      "completed_at": "2025-01-15",
-      "artifacts": {
-        "spec": "features/user-authentication/spec.md",
-        "plan": "features/user-authentication/plan.md",
-        "tasks": "features/user-authentication/tasks.md"
-      },
       "summary": {
         "business_goal": "实现安全的用户登录和会话管理",
         "technical_approach": "JWT + OAuth2.0",
         "key_decisions": [
           "使用 JWT 而非 Session 存储",
-          "Token 有效期 24 小时",
-          "支持 OAuth2.0 第三方登录"
+          "Token 有效期 24 小时"
         ]
       },
       "impact": {
         "modules_created": ["auth-service"],
-        "modules_modified": ["user-gateway", "common-utils"],
-        "apis_added": ["/api/v1/auth/login", "/api/v1/auth/refresh"],
-        "domain_entities": ["User", "Session", "Token"]
+        "apis_added": ["/api/v1/auth/login"]
       },
-      "tags": ["authentication", "security", "user-management"],
-      "related_features": ["user-registration", "role-based-access"],
+      "related_features": ["user-registration"],
       "adr_refs": ["ADR-001-jwt-token-strategy"]
     }
-  ],
-  "index": {
-    "by_module": {
-      "auth-service": ["user-authentication", "role-based-access"]
-    },
-    "by_tag": {
-      "security": ["user-authentication", "role-based-access"]
-    },
-    "by_domain": {
-      "User": ["user-authentication", "user-registration"]
-    }
-  }
+  ]
 }
 ```
 
-**查询接口**：
+**知识沉淀命令：/speckit.archive** 在 `/speckit.implement` 完成后自动执行：
 
-| 查询方式                     | 输入       | 输出                 |
-| ---------------------------- | ---------- | -------------------- |
-| `find_by_module`           | 模块名     | 相关特性列表及摘要   |
-| `find_by_domain`           | 实体名     | 涉及该实体的特性列表 |
-| `find_related`             | 特性ID     | 关联特性及关联原因   |
-| `find_conflicts`           | 新特性描述 | 潜在冲突的历史决策   |
-| `get_decisions_for_module` | 模块名     | 影响该模块的所有 ADR |
-
-##### 2.1.6.3 知识沉淀命令：/speckit.archive
-
-**触发时机**：`/speckit.implement` 所有任务完成后自动执行
-
-**三阶段流程**：
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                  /speckit.archive 执行流程                       │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Phase 1: 知识提取                                               │
-│  ─────────────────                                              │
-│  • 解析 spec.md → business_goal, acceptance_criteria            │
-│  • 解析 plan.md → technical_approach, architecture_decisions    │
-│  • 解析代码变更 → modules_affected, apis_added, domain_entities │
-│                                                                 │
-│  Phase 2: 知识沉淀                                               │
-│  ─────────────────                                              │
-│  • 更新 Feature Registry (features/registry.json)              │
-│  • 提取架构决策 → 生成 ADR (如有重要决策)                         │
-│  • 更新领域模型 (domain-model.md)                                │
-│  • 触发 CodeWiki 更新                                            │
-│                                                                 │
-│  Phase 3: 关联建立                                               │
-│  ─────────────────                                              │
-│  • 基于模块、标签、领域实体识别相关特性                           │
-│  • 更新 Registry 索引 (by_module, by_tag, by_domain)            │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**ADR 自动生成模板**：
-
-```markdown
-# ADR-{number}: {title}
-
-## 状态
-{Proposed | Accepted | Deprecated | Superseded}
-
-## 上下文
-来源特性: {feature_id}
-决策日期: {date}
-
-{从 plan.md 提取的背景描述}
-
-## 决策
-{从 plan.md 提取的技术方案}
-
-## 理由
-{从 spec.md 和 plan.md 提取的决策依据}
-
-## 影响
-- 受影响模块: {modules}
-- 依赖关系: {dependencies}
-- 后续约束: {constraints}
-
-## 相关
-- 特性: {feature_link}
-- 相关 ADR: {related_adrs}
-```
-
-##### 2.1.6.4 历史感知增强
-
-**增强 /speckit.specify**：
-
-在 Phase 1 之前新增 Phase 0，自动加载相关历史上下文：
-
-```yaml
-phase_0_context:
-  name: "历史上下文加载"
-  actions:
-    - action: "加载 Feature Registry"
-      source: "features/registry.json"
-    - action: "分析需求关键词"
-      extract: ["模块名", "领域实体", "业务标签"]
-    - action: "查询相关历史特性"
-      query:
-        by_module: "{涉及的模块}"
-        by_domain: "{涉及的领域实体}"
-        by_tag: "{相关标签}"
-    - action: "生成历史上下文摘要"
-```
-
-**输出示例**：
-
-```markdown
-## 📚 相关历史需求
-
-### 直接相关
-| 特性 | 状态 | 关键决策 | 影响模块 |
-|------|------|---------|---------|
-| user-authentication | 已实现 | JWT + OAuth2.0 | auth-service |
-
-### ⚠️ 设计约束
-- 必须兼容现有 JWT Token 结构
-- 考虑与 OAuth2.0 流程的集成点
-
-### 可复用设计
-- Token 刷新机制可复用
-- 用户会话管理模式
-```
-
-**增强 /speckit.plan**：
-
-在 Phase 1 之前新增 Phase 0，加载历史决策约束：
-
-```yaml
-phase_0_history:
-  name: "历史决策加载"
-  actions:
-    - action: "加载相关 ADR"
-      source: "docs-knowledge/L1-project/architecture/decisions/"
-      filter: "与当前需求涉及模块相关"
-    - action: "生成决策约束清单"
-    - action: "冲突检测"
-```
-
-**冲突检测输出**：
-
-```markdown
-## ⚠️ 决策冲突警告
-
-| 历史决策 | 新需求 | 冲突类型 |
-|---------|--------|---------|
-| ADR-001: 使用 JWT 无状态认证 | 改用 Redis Session | 架构冲突 |
-
-### 需要明确
-- 是否废弃 ADR-001？
-- 是否共存两种方案？
-- 迁移策略是什么？
-```
-
-##### 2.1.6.5 知识驱动的 SDD 工作流
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    知识驱动的 SDD 工作流                             │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌─────────────┐                                                    │
-│  │ 新需求输入   │                                                    │
-│  └──────┬──────┘                                                    │
-│         ↓                                                           │
-│  ┌─────────────────────────────────────────────────────────┐       │
-│  │ /speckit.specify                                         │       │
-│  │  ├─ Phase 0: 查询 Registry → 加载相关历史               │       │
-│  │  ├─ Phase 1: 需求分析 (带历史上下文)                     │       │
-│  │  └─ Output: spec.md (包含历史关联说明)                   │       │
-│  └──────┬──────────────────────────────────────────────────┘       │
-│         ↓                                                           │
-│  ┌─────────────────────────────────────────────────────────┐       │
-│  │ /speckit.plan                                            │       │
-│  │  ├─ Phase 0: 加载相关 ADR → 识别约束                    │       │
-│  │  ├─ Phase 1: 技术设计 (遵循历史决策)                     │       │
-│  │  └─ Output: plan.md (标注决策延续/变更)                  │       │
-│  └──────┬──────────────────────────────────────────────────┘       │
-│         ↓                                                           │
-│  ┌─────────────────────────────────────────────────────────┐       │
-│  │ /speckit.tasks → /speckit.implement                      │       │
-│  │  └─ 实现代码                                             │       │
-│  └──────┬──────────────────────────────────────────────────┘       │
-│         ↓                                                           │
-│  ┌─────────────────────────────────────────────────────────┐       │
-│  │ /speckit.archive (自动触发)                              │       │
-│  │  ├─ 提取知识 → 更新 Registry                            │       │
-│  │  ├─ 生成 ADR (如需要)                                   │       │
-│  │  ├─ 更新领域模型                                         │       │
-│  │  ├─ 建立特性关联                                         │       │
-│  │  └─ 触发 CodeWiki 更新                                   │       │
-│  └──────┬──────────────────────────────────────────────────┘       │
-│         ↓                                                           │
-│  ┌─────────────┐                                                    │
-│  │ 知识库更新   │ ←── 下一个需求可以访问                            │
-│  └─────────────┘                                                    │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-##### 2.1.6.6 查询场景示例
-
-**场景1：新需求涉及已有模块**
-
-```
-用户: "为 auth-service 添加双因素认证"
-
-/speckit.specify 执行:
-1. 关键词提取: "auth-service", "认证", "安全"
-2. Registry 查询:
-   - by_module("auth-service") → ["user-authentication", "role-based-access"]
-   - by_tag("security") → ["user-authentication", ...]
-3. 输出历史上下文:
-
-   ## 📚 相关历史需求
-
-   ### user-authentication (已实现)
-   - **技术方案**: JWT + OAuth2.0
-   - **关键决策**: Token 有效期 24h, 支持第三方登录
-   - **相关 ADR**: ADR-001-jwt-token-strategy
-
-   ### ⚠️ 设计约束
-   - 必须兼容现有 JWT Token 结构
-   - 考虑与 OAuth2.0 流程的集成点
-```
-
-**场景2：检测潜在冲突**
-
-```
-用户: "将用户会话改为 Redis Session 存储"
-
-/speckit.plan 执行:
-1. 加载相关 ADR: ADR-001-jwt-token-strategy
-2. 冲突检测:
-
-   ## ⚠️ 决策冲突警告
-
-   | 历史决策 | 新需求 | 冲突类型 |
-   |---------|--------|---------|
-   | ADR-001: 使用 JWT 无状态认证 | 改用 Redis Session | 架构冲突 |
-
-   ### 需要明确
-   - 是否废弃 ADR-001？
-   - 是否共存两种方案？
-   - 迁移策略是什么？
-```
+1. **知识提取**：解析 [spec.md](http://spec.md)、[plan.md](http://plan.md)、代码变更
+2. **知识沉淀**：更新 Feature Registry、生成 ADR、更新领域模型
+3. **关联建立**：识别相关特性，更新索引
 
 ### 2.2 TDD 测试驱动开发【核心】
 
@@ -641,7 +289,7 @@ phase_0_history:
 
 #### 2.2.2 红灯-绿灯-重构循环
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────┐
 │              TDD 循环                                │
 ├─────────────────────────────────────────────────────┤
@@ -670,9 +318,7 @@ phase_0_history:
 
 #### 2.2.3 AI 优先 TDD 流程
 
-将 AI 深度集成到 TDD 流程中：
-
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                AI 优先 TDD 流程                              │
 ├─────────────────────────────────────────────────────────────┤
@@ -692,18 +338,10 @@ phase_0_history:
 │  │   const user = { email: 'test@example.com', ... };   │   │
 │  │   const result = await registerUser(user);           │   │
 │  │   expect(result.success).toBe(true);                 │   │
-│  │   expect(result.user.id).toBeDefined();              │   │
 │  │ });                                                  │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                          ↓                                  │
 │  Step 3: AI 编写通过测试的实现代码                          │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ async function registerUser(userData) {              │   │
-│  │   // AI生成的实现代码                                │   │
-│  │   const user = await User.create(userData);          │   │
-│  │   return { success: true, user };                    │   │
-│  │ }                                                    │   │
-│  └─────────────────────────────────────────────────────┘   │
 │                          ↓                                  │
 │  Step 4: 人工审查和验证                                     │
 │                                                             │
@@ -712,7 +350,7 @@ phase_0_history:
 
 #### 2.2.4 测试金字塔
 
-```
+```plaintext
                     ┌─────────┐
                     │  E2E    │  10%
                     │  测试   │
@@ -725,23 +363,6 @@ phase_0_history:
 
 **测试覆盖率要求**：≥80%
 
-#### 2.2.5 测试阶段 D-R-O 职责分工
-
-| 层级           | 内容                                                                                |
-| -------------- | ----------------------------------------------------------------------------------- |
-| **委派** | 基于功能规范生成测试用例、识别边缘情况和故障模式、第一轮测试代码生成                |
-| **审查** | 防止 AI 走捷径或实施桩测试（stubbed tests）、验证断言有效性、确保测试可由智能体运行 |
-| **掌控** | 测试覆盖率与功能规范对齐、测试策略制定、边缘情况的创造性映射、测试意图的最终确认    |
-
-**AI 测试生成最佳实践**：
-
-| 实践                     | 说明                                         |
-| ------------------------ | -------------------------------------------- |
-| **分离生成**       | 在独立会话中生成测试，避免测试与实现循环依赖 |
-| **先验证失败**     | 确保生成的测试在实现前失败（红灯阶段）       |
-| **边缘情况发现**   | 提示 AI 识别开发者可能忽略的边缘情况         |
-| **覆盖率工具集成** | 在 AGENTS.md 中配置覆盖率工具调用方式        |
-
 ### 2.3 AI 协同开发流程
 
 #### 2.3.1 需求阶段
@@ -752,17 +373,9 @@ phase_0_history:
 | 任务拆解 | 技术负责人 | AI辅助拆解              | 任务列表     |
 | 技术方案 | 架构师     | Vibe-Driven Development | 技术规格     |
 
-**D-R-O 职责分工**：
+**Vibe-Driven Development 流程**：
 
-| 层级           | 内容                                                                          |
-| -------------- | ----------------------------------------------------------------------------- |
-| **委派** | AI 进行可行性分析第一轮、读取规范映射代码库、识别依赖和歧义、生成工时估算建议 |
-| **审查** | 验证估算准确性、评估分析完整性、确认技术约束反映真实情况                      |
-| **掌控** | 优先级决策、长期方向规划、排序权衡、资源分配                                  |
-
-**Vibe-Driven Development**：
-
-```
+```plaintext
 高阶概念 (Vibe)
     ↓ AI对话迭代
 技术规格 (Spec)
@@ -779,17 +392,9 @@ phase_0_history:
 | **AI** | 样板代码生成、API调用实现、单元测试生成、文档生成 |
 | **人** | 业务逻辑设计、架构决策、代码审查、最终验收        |
 
-**D-R-O 职责分工**：
-
-| 层级           | 内容                                                                         |
-| -------------- | ---------------------------------------------------------------------------- |
-| **委派** | 功能实现初稿、CRUD逻辑、脚手架搭建、重构、样板代码生成、测试编写             |
-| **审查** | 评估设计选择、性能影响、安全风险、迁移风险、领域对齐，纠正 AI 遗漏的细微问题 |
-| **掌控** | 新抽象设计、跨切面架构变更、模糊产品需求澄清、长期可维护性权衡               |
-
 **从规格生成代码**：
 
-```
+```plaintext
 OpenAPI/Swagger  →  API客户端 + 服务器路由
 GraphQL Schema   →  类型定义 + Resolver骨架
 数据库DDL       →  ORM模型 + Repository层
@@ -799,14 +404,14 @@ GraphQL Schema   →  类型定义 + Resolver骨架
 
 **Code Review 的核心目的**：
 
-1. **让代码更加统一、规范、易维护**：通过统一的代码风格和规范，降低维护成本
-2. **方便开发人员互相学习经验，达到知识共享**：促进团队整体技术水平提升
-3. **帮助开发人员跳出固定思维，得出最优解决思路**：多人Review从不同角度审视代码
-4. **从可运行到可重用**：使代码不仅能完成功能，还具备良好的可重用性和扩展性
+1. 让代码更加统一、规范、易维护
+2. 方便开发人员互相学习经验，达到知识共享
+3. 帮助开发人员跳出固定思维，得出最优解决思路
+4. 从可运行到可重用
 
 **双层 CR 机制**：
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                    双层 CR 机制                              │
 ├─────────────────────────────────────────────────────────────┤
@@ -834,7 +439,7 @@ GraphQL Schema   →  类型定义 + Resolver骨架
 
 **Code Review 完整流程**：
 
-```
+```plaintext
 1. 开发者提交代码
        ↓
 2. 自我 Review（开发者自查基本规范），与SDD流程绑定
@@ -859,23 +464,15 @@ GraphQL Schema   →  类型定义 + Resolver骨架
 | **代码质量** | 可读性、命名清晰度、注释充分性                   |
 | **性能安全** | 性能瓶颈、资源释放、安全漏洞                     |
 
-**D-R-O 职责分工**：
-
-| 层级           | 内容                                                                            |
-| -------------- | ------------------------------------------------------------------------------- |
-| **委派** | 初始代码审查（可多次）、代码风格检查、潜在 Bug 检测、安全漏洞扫描、最佳实践建议 |
-| **审查** | 架构对齐验证、可组合模式评估、惯例使用正确性、功能符合需求确认                  |
-| **掌控** | 最终合并决策、部署到生产环境的代码质量负责、运行可靠性和需求满足的最终确认      |
-
 ---
 
-## 3. 代码设计规范
+## 第三章：代码设计规范
 
 ### 3.1 三阶段编程方法论
 
 优秀的代码设计需要经历三个阶段：**分析 → 设计 → 打磨**
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                    三阶段编程                                │
 ├─────────────────────────────────────────────────────────────┤
@@ -891,24 +488,11 @@ GraphQL Schema   →  类型定义 + Resolver骨架
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**分析阶段**：
+**各阶段要点**：
 
-- 不要急于实现功能，避免陷入事务脚本模式（面向过程）
-- 分析需求的本质目的
-- 识别完成功能需要的核心实体
-- 核心是"**找实体**"
-
-**设计阶段**：
-
-- 将职责合理分配到各个实体上
-- 运用 GRASP 原则指导设计
-- 确保职责分配的合理性和清晰性
-
-**打磨阶段**：
-
-- 选择合适的设计模式实现
-- 提高代码的可读性和可维护性
-- 使用模板模式处理通用业务流程
+- **分析阶段**：不要急于实现功能，避免陷入事务脚本模式（面向过程），核心是"找实体"
+- **设计阶段**：将职责合理分配到各个实体上，运用 GRASP 原则指导设计
+- **打磨阶段**：选择合适的设计模式实现，提高代码的可读性和可维护性
 
 ### 3.2 SOLID 设计原则
 
@@ -1008,7 +592,7 @@ SOLID 是面向对象设计的五大基本原则，是编写高质量代码的�
 
 ---
 
-## 4. 编码技巧规范
+## 第四章：编码技巧规范
 
 ### 4.1 方法级优化技巧
 
@@ -1027,15 +611,6 @@ SOLID 是面向对象设计的五大基本原则，是编写高质量代码的�
 - 假定功能步骤已实现，先组织整体流程
 - 最后再实现各个具体方法
 
-```
-示例 - 交易处理流程：
-1. 解析交易字符串
-2. 转换为词汇元素数组
-3. 标准化每个词汇
-4. 根据规模选择提交算法
-5. 返回提交结果
-```
-
 #### 4.1.2 其他方法级技巧
 
 | 技巧                                | 说明                                           |
@@ -1052,7 +627,7 @@ SOLID 是面向对象设计的五大基本原则，是编写高质量代码的�
 
 **原则**：把复杂的条件表达式拆分成多个条件表达式，减少嵌套。
 
-```
+```plaintext
 // 反例：多层嵌套
 if (condition1) {
     if (condition2) {
@@ -1097,7 +672,7 @@ if (!condition3) return;
 
 **典型模式**：
 
-```
+```plaintext
 1. 业务逻辑层抛出业务异常
        ↓
 2. 服务层简单调用，不处理异常
@@ -1260,11 +835,11 @@ if (!condition3) return;
 
 ---
 
-## 5. 多级知识空间
+## 第五章：多级知识空间
 
 ### 5.1 三层架构体系
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                    企业级 (L0)                              │
 │              (Enterprise Standards)                         │
@@ -1294,7 +869,7 @@ if (!condition3) return;
 
 **目录结构**：
 
-```
+```plaintext
 enterprise-standards/
 ├── constitution/               # 技术宪法
 │   ├── architecture-principles.md
@@ -1318,11 +893,11 @@ enterprise-standards/
 
 ### 5.3 L1 项目级知识库
 
-**职责**：跨仓库业务知识、项目级架构决策、AI定期（其他方式待定)聚合
+**职责**：跨仓库业务知识、项目级架构决策、AI定期聚合
 
 **目录结构**：
 
-```
+```plaintext
 project-knowledge/
 ├── README.md                   # 项目总览
 ├── BUSINESS.md                 # 业务知识入口
@@ -1332,8 +907,6 @@ project-knowledge/
 │   ├── domain-model.md        # 领域模型
 │   ├── glossary.md            # 术语词典
 │   ├── workflows/             # 业务流程
-│   │   ├── user-registration.md
-│   │   └── order-lifecycle.md
 │   └── rules.md               # 业务规则
 │
 ├── architecture/               # 架构知识
@@ -1354,8 +927,7 @@ project-knowledge/
     ├── last-updated.json
     ├── repo-summaries/        # 各仓库摘要
     ├── service-topology.md    # 服务拓扑
-    ├── cross-repo-patterns.md # 跨仓库模式
-    └── improvement-suggestions.md
+    └── cross-repo-patterns.md # 跨仓库模式
 ```
 
 **维护方式**：AI聚合 + 人工审核
@@ -1366,36 +938,26 @@ project-knowledge/
 
 - **极简原则**：只保留仓库特有信息
 - **继承原则**：通用规范从上层继承
-- **自动化原则**：code-derived 由 AI 自动生成，尽量减轻人工维护成本。
+- **自动化原则**：code-derived 由 AI 自动生成，减轻人工维护成本
 
 **目录结构**：
 
-```
+```plaintext
 {repo}/
 ├── CLAUDE.md                    # AI入口（必须）
 └── .knowledge/
-    ├── context.md               # 仓库上下文（必须，人工维护，等同CLAUDE.md或者AGENT.md）
+    ├── context.md               # 仓库上下文（必须，人工维护）
     ├── decisions.md             # 重要决策记录（可选）
     │
-    ├── upstream/                # 上级知识库（Git Subtree 引入，详见 5.4.2）
+    ├── upstream/                # 上级知识库（Git Subtree 引入）
     │   ├── L1-project/          # 项目级知识库
-    │   │   ├── domain/
-    │   │   ├── architecture/
-    │   │   └── standards/
     │   └── L0-enterprise/       # 企业级知识库
-    │       ├── governance/
-    │       ├── security/
-    │       └── standards/
     │
-    ├── features/                # 特性知识沉淀（/speckit.archive 自动维护，暂时不用）
-    │   ├── registry.json        # Feature Registry 特性注册表
+    ├── features/                # 特性知识沉淀（自动维护）
+    │   ├── registry.json        # Feature Registry
     │   └── {feature-id}/        # 各功能归档目录
-    │       ├── spec.md          # 功能规格
-    │       ├── plan.md          # 实施计划
-    │       ├── ADR-*.md         # 架构决策记录
-    │       └── summary-*.md     # 总结文档，未来预计会用
     │
-    ├── .knowledge-config.yaml   # 知识库配置（定义 subtree 源）
+    ├── .knowledge-config.yaml   # 知识库配置
     │
     └── code-derived/            # 代码衍生文档（AI自动生成）
         ├── metadata.json        # 生成元信息
@@ -1404,7 +966,7 @@ project-knowledge/
         └── {module-name}.md     # 各模块详细文档
 ```
 
-**context.md 模板**：
+[**context.md**](http://context.md)** 模板**：
 
 ```markdown
 # 仓库上下文: {repo-name}
@@ -1426,29 +988,14 @@ project-knowledge/
 |------|------|--------|
 | user-api | 用户接口层 | UserController |
 | user-service | 业务逻辑层 | UserService |
-| user-repository | 数据访问层 | UserRepository |
 
 ## 4. 本仓库特有规则
 - 用户ID必须使用雪花算法生成
 - 密码必须加密存储，使用 bcrypt
 - 所有接口需要支持幂等性
-
-## 5. 快速链接
-- 项目知识库: [链接]
-- API文档: [链接]
-- 数据库ER图: [链接]
 ```
 
-**code-derived 代码衍生文档**：
-
-| 文件                 | 说明                   | 生成方式                 |
-| -------------------- | ---------------------- | ------------------------ |
-| `metadata.json`    | 生成元信息             | AI扫描代码自动生成       |
-| `overview.md`      | 仓库概览、端到端架构图 | AI分析代码结构生成       |
-| `module_tree.json` | 模块依赖树             | AI分析import/require生成 |
-| `{module}.md`      | 模块详细文档           | AI分析模块代码生成       |
-
-#### 5.4.1 code-derived 自动生成工具（CodeWiki）
+#### 5.4.1 CodeWiki 自动生成工具
 
 **工具定位**：CodeWiki 是端到端的 AI 驱动文档生成平台，自动分析代码仓库的结构、依赖关系与模块层次，为每个模块生成高质量技术文档。
 
@@ -1461,26 +1008,6 @@ project-knowledge/
 | **渐进式生成**   | 叶子模块 → 父模块 → 仓库概览      | 动态规划 + 拓扑排序    |
 | **缓存增量更新** | 避免重复分析，支持秒级返回          | 文件哈希 + 变更检测    |
 
-**生成流程**：
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                  CodeWiki 文档生成流程                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐           │
-│  │  代码分析   │ → │  依赖图构建  │ → │  模块聚类   │           │
-│  │  AST解析    │   │  调用关系    │   │  层次结构   │           │
-│  └─────────────┘   └─────────────┘   └─────────────┘           │
-│                                              ↓                  │
-│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐           │
-│  │  仓库概览   │ ← │  父模块文档  │ ← │  叶子模块   │           │
-│  │ overview.md │   │ {parent}.md │   │ {leaf}.md  │           │
-│  └─────────────┘   └─────────────┘   └─────────────┘           │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
 **CLI 命令**：
 
 ```bash
@@ -1488,7 +1015,7 @@ project-knowledge/
 pip install codewiki
 
 # 配置 AI 服务
-codewiki config set --api-key <KEY> --base-url <URL>
+codewiki config set --api-key <key> --base-url <url>
 
 # 一键生成文档
 codewiki generate https://github.com/org/repo --output .knowledge/code-derived/
@@ -1498,295 +1025,36 @@ codewiki generate /path/to/repo \
   --create-branch           # 创建文档分支
   --github-pages            # 输出为静态站点
   --model gpt-4             # 指定模型
+</url></key>
 ```
-
-**输出文件结构**：
-
-```
-.knowledge/code-derived/
-├── metadata.json          # 生成元信息（时间、模型、统计）
-├── module_tree.json       # 完整模块依赖树
-├── first_module_tree.json # 初始模块树（用于增量对比）
-├── overview.md            # 仓库概览（端到端架构图）
-├── {module}.md            # 模块详细文档
-│   ├── 简介
-│   ├── 核心功能
-│   ├── 架构设计（类图、系统图）
-│   ├── 数据流与处理流程
-│   ├── 关键算法
-│   ├── 配置与依赖
-│   └── 使用示例
-└── ...
-```
-
-**与知识库集成**：
-
-| 集成点                  | 说明                                                 |
-| ----------------------- | ---------------------------------------------------- |
-| **SDD/specify**   | 读取 overview.md 理解仓库全貌，避免重复设计          |
-| **SDD/plan**      | 读取 module_tree.json 规划文件路径，参考现有模块结构 |
-| **SDD/implement** | 读取 {module}.md 理解代码模式，保持风格一致          |
-| **Code Review**   | 对比文档与代码变更，检测不一致                       |
 
 #### 5.4.2 上级知识库引用方案（Git Subtree）
 
-L2 仓库级知识库需要访问 L1 项目级和 L0 企业级知识库的规范与标准。本节定义基于 **Git Subtree** 的知识库引用方案，实现对 AI 的透明访问。
-
-##### 5.4.2.1 方案选型
-
-**Git Submodule vs Git Subtree 对比**：
-
-| 维度                 | Git Submodule                                  | Git Subtree                        |
-| -------------------- | ---------------------------------------------- | ---------------------------------- |
-| **AI 友好度**  | 🟡 中等 - 需要 `git submodule update --init` | 🟢 高 - 文件直接存在，无需额外操作 |
-| **Clone 体验** | 需要 `--recursive` 或额外初始化              | 直接 clone 即可访问                |
-| **更新机制**   | `git submodule update --remote`              | `git subtree pull`               |
-| **版本锁定**   | 精确锁定到 commit                              | 合并历史，可选 squash              |
-| **离线访问**   | 需要初始化后才能离线访问                       | 始终可离线访问                     |
-| **CI/CD 兼容** | 需要配置递归 clone                             | 开箱即用                           |
+L2 仓库级知识库通过 **Git Subtree** 引入 L1 项目级和 L0 企业级知识库，实现对 AI 的透明访问。
 
 **选择 Git Subtree 的理由**：
 
-1. **AI 零障碍访问** - 文件直接存在于仓库，Claude/Copilot 可直接读取
+1. **AI 零障碍访问** - 文件直接存在于仓库，AI 可直接读取
 2. **简化 CI/CD** - 无需 `--recursive` 或 submodule 初始化步骤
 3. **离线友好** - clone 后即可完整访问所有知识库内容
 4. **历史可追溯** - 可选择保留或 squash 上游历史
 
-##### 5.4.2.2 目录结构设计
-
-```
-{repo}/.knowledge/
-├── upstream/                      # 上级知识库（Git Subtree 引入）
-│   │
-│   ├── L1-project/                # 项目级知识库 subtree
-│   │   ├── domain/                # 领域模型、术语词典
-│   │   │   ├── glossary.md
-│   │   │   └── domain-model.md
-│   │   ├── architecture/          # 架构决策、服务目录
-│   │   │   ├── ADR-*.md
-│   │   │   ├── service-catalog.md
-│   │   │   └── tech-stack.md
-│   │   └── standards/             # 项目规范（继承 L0）
-│   │       ├── coding.md
-│   │       ├── api.md
-│   │       └── testing.md
-│   │
-│   └── L0-enterprise/             # 企业级知识库 subtree
-│       ├── governance/            # 治理规范
-│       │   ├── review-process.md
-│       │   └── release-policy.md
-│       ├── security/              # 安全标准
-│       │   ├── security-baseline.md
-│       │   └── compliance.md
-│       └── standards/             # 企业编码规范
-│           ├── coding-standards.md
-│           └── architecture-principles.md
-│
-└── .knowledge-config.yaml         # 知识库配置文件
-```
-
-##### 5.4.2.3 知识库配置文件
-
-**.knowledge-config.yaml**：
-
-```yaml
-# 知识库层级配置
-version: "1.0"
-repo_level: L2  # 当前仓库层级
-
-# 上级知识库 Subtree 配置
-upstream:
-  L1-project:
-    remote: git@github.com:org/project-knowledge.git
-    branch: main
-    prefix: .knowledge/upstream/L1-project
-    # 可选：只引入特定目录（减少体积）
-    sparse_paths:
-      - domain/
-      - architecture/
-      - standards/
-    update_strategy: manual  # manual | weekly | on-demand
-
-  L0-enterprise:
-    remote: git@github.com:org/enterprise-knowledge.git
-    branch: main
-    prefix: .knowledge/upstream/L0-enterprise
-    sparse_paths:
-      - governance/
-      - security/
-      - standards/
-    update_strategy: manual
-
-# AI 搜索路径优先级（高→低）
-search_priority:
-  - .knowledge/context.md              # 仓库特有优先
-  - .knowledge/features/               # 功能知识
-  - .knowledge/code-derived/           # 代码衍生
-  - .knowledge/upstream/L1-project/    # 项目级次之
-  - .knowledge/upstream/L0-enterprise/ # 企业级兜底
-
-# 继承规则
-inheritance:
-  # L2 可覆盖的配置
-  overridable:
-    - coding-standards    # 可根据仓库特点调整
-    - api-conventions     # 可有仓库特定约定
-  # L2 必须遵循的配置（只读）
-  readonly:
-    - security-policies         # 安全策略不可覆盖
-    - compliance-requirements   # 合规要求不可覆盖
-    - architecture-principles   # 架构原则不可覆盖
-```
-
-##### 5.4.2.4 操作命令
-
-**初始化 Subtree**：
+**操作命令**：
 
 ```bash
-# 1. 添加远程仓库（一次性）
+# 添加远程仓库
 git remote add L1-knowledge git@github.com:org/project-knowledge.git
-git remote add L0-knowledge git@github.com:org/enterprise-knowledge.git
 
-# 2. 首次引入 subtree（使用 --squash 压缩历史）
+# 首次引入 subtree
 git subtree add --prefix=.knowledge/upstream/L1-project L1-knowledge main --squash
-git subtree add --prefix=.knowledge/upstream/L0-enterprise L0-knowledge main --squash
-```
 
-**更新 Subtree**：
-
-```bash
-# 拉取上级知识库最新变更
+# 更新 Subtree
 git subtree pull --prefix=.knowledge/upstream/L1-project L1-knowledge main --squash
-git subtree pull --prefix=.knowledge/upstream/L0-enterprise L0-knowledge main --squash
 ```
-
-**封装脚本 (scripts/knowledge-sync.sh)**：
-
-```bash
-#!/bin/bash
-set -euo pipefail
-
-# 知识库同步脚本
-# 用法: ./scripts/knowledge-sync.sh [L1|L0|all]
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-# 配置
-L1_REMOTE="L1-knowledge"
-L1_PREFIX=".knowledge/upstream/L1-project"
-L0_REMOTE="L0-knowledge"
-L0_PREFIX=".knowledge/upstream/L0-enterprise"
-BRANCH="main"
-
-sync_subtree() {
-    local name=$1
-    local remote=$2
-    local prefix=$3
-
-    echo "🔄 Syncing ${name}..."
-
-    cd "$REPO_ROOT"
-
-    if [ ! -d "$prefix" ]; then
-        echo "  📥 Initial import (subtree add)..."
-        git subtree add --prefix="$prefix" "$remote" "$BRANCH" --squash
-    else
-        echo "  📥 Pulling updates (subtree pull)..."
-        git subtree pull --prefix="$prefix" "$remote" "$BRANCH" --squash
-    fi
-
-    echo "  ✅ ${name} synced successfully"
-}
-
-case "${1:-all}" in
-    L1)
-        sync_subtree "L1-project" "$L1_REMOTE" "$L1_PREFIX"
-        ;;
-    L0)
-        sync_subtree "L0-enterprise" "$L0_REMOTE" "$L0_PREFIX"
-        ;;
-    all)
-        sync_subtree "L1-project" "$L1_REMOTE" "$L1_PREFIX"
-        sync_subtree "L0-enterprise" "$L0_REMOTE" "$L0_PREFIX"
-        ;;
-    *)
-        echo "Usage: $0 [L1|L0|all]"
-        exit 1
-        ;;
-esac
-
-echo ""
-echo "🎉 Knowledge sync completed!"
-echo "   Run 'git status' to see changes"
-echo "   Run 'git push' to publish updates"
-```
-
-##### 5.4.2.5 CLAUDE.md 集成
-
-在仓库的 CLAUDE.md 中声明知识库层级结构，指导 AI 按优先级查阅：
-
-```markdown
-# 仓库上下文: {repo-name}
-
-## 知识库结构
-
-本仓库采用三级知识空间架构，通过 Git Subtree 引入上级知识库：
-
-| 层级 | 路径 | 说明 | 优先级 |
-|------|------|------|--------|
-| **L2 仓库级** | `.knowledge/context.md` | 本仓库特有规则 | 最高 |
-| **L2 功能级** | `.knowledge/features/` | 功能知识沉淀 | 高 |
-| **L2 代码级** | `.knowledge/code-derived/` | 代码衍生文档 | 高 |
-| **L1 项目级** | `.knowledge/upstream/L1-project/` | 项目通用规范 | 中 |
-| **L0 企业级** | `.knowledge/upstream/L0-enterprise/` | 企业治理标准 | 兜底 |
-
-## AI 指令
-
-在执行任务时，请按以下优先级查阅知识库：
-
-1. **优先查阅** `.knowledge/context.md` 了解本仓库特有规则
-2. **技术规范** 参考 `.knowledge/upstream/L1-project/standards/`
-3. **架构决策** 参考 `.knowledge/upstream/L1-project/architecture/ADR-*.md`
-4. **领域模型** 参考 `.knowledge/upstream/L1-project/domain/`
-5. **安全合规** 遵循 `.knowledge/upstream/L0-enterprise/security/`（不可覆盖）
-6. **企业规范** 遵循 `.knowledge/upstream/L0-enterprise/standards/`
-
-## 知识库同步
-
-当需要更新上级知识库内容时：
-
-```bash
-# 同步所有上级知识库
-./scripts/knowledge-sync.sh all
-
-# 仅同步项目级知识库
-./scripts/knowledge-sync.sh L1
-
-# 仅同步企业级知识库
-./scripts/knowledge-sync.sh L0
-```
-
-
-
-
-##### 5.4.2.6 方案优势总结
-
-
-| 优势                  | 说明                                                                 |
-| --------------------- | -------------------------------------------------------------------- |
-| **AI 透明访问** | 所有知识库文件物理存在于 `.knowledge/` 下，AI 无需特殊处理即可读取 |
-| **版本一致性**  | Subtree 版本随仓库提交锁定，团队成员看到相同的知识库内容             |
-| **离线可用**    | Clone 后立即可用，无需网络访问即可查阅所有知识                       |
-| **继承清晰**    | `upstream/L1-*/L0-*` 路径清晰表达知识来源和层级                    |
-| **更新可控**    | 手动 `subtree pull` 控制更新时机，避免意外变更影响开发             |
-| **CI/CD 友好**  | 无需额外配置，标准 `git clone` 即可获取完整知识库                  |
-| **冲突隔离**    | 上级知识库变更通过 squash 合并，历史清晰，冲突易解决                 |
-
-
 
 ### 5.5 信息流向机制
 
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                    信息流向                                  │
 ├─────────────────────────────────────────────────────────────┤
@@ -1799,7 +1067,6 @@ echo "   Run 'git push' to publish updates"
 │  • 收集 code-derived 文档                                   │
 │  • 分析变更影响                                             │
 │  • 生成聚合报告                                             │
-│  • 更新项目文档                                             │
 │                                                             │
 │  自顶向下继承 (Downward Inheritance)                        │
 │  ─────────────────────────────────                          │
@@ -1810,76 +1077,18 @@ echo "   Run 'git push' to publish updates"
 │  • 安全基线要求                                             │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
-
+```
 
 ### 5.6 AI 聚合机制
 
-```
-
-
-
-**聚合配置** (`aggregation/config.yaml`)：
-
-```yaml
-version: "2.0"
-
-schedule:
-  type: weekly
-  day: monday
-  time: "02:00"
-
-repositories:
-  github_org:
-    org: "your-org"
-    repos:
-      - name: "user-service"
-        knowledge_path: ".knowledge/context.md"
-        code_derived_path: ".knowledge/code-derived/"
-      - name: "order-service"
-        knowledge_path: ".knowledge/context.md"
-        code_derived_path: ".knowledge/code-derived/"
-
-knowledge_sources:
-  context:
-    path: ".knowledge/context.md"
-    type: "manual"
-    required: true
-  code_derived:
-    path: ".knowledge/code-derived/"
-    type: "auto-generated"
-    required: false
-
-tasks:
-  collect_context:
-    description: "收集各仓库 context.md 的变更"
-  analyze_impact:
-    description: "分析变更对项目文档的影响"
-  update_docs:
-    description: "更新项目级文档"
-    mode: "suggest"
-
-review:
-  auto_merge:
-    enabled: true
-    conditions:
-      - "only_additions"
-      - "confidence_score >= 0.9"
-  manual_review:
-    reviewers: ["@architect", "@tech-lead"]
-    required_for:
-      - "architecture/*"
-      - "business/domain-*.md"
-```
-
 **聚合流程**：
 
-```
+```plaintext
 1. 收集阶段
    ├── 克隆/拉取各子仓库
    ├── 读取 .knowledge/context.md
    ├── 读取 .knowledge/code-derived/
-   ├── 与上次快照对比，识别变更
-   └── 生成变更列表
+   └── 与上次快照对比，识别变更
 
 2. 分析阶段 (AI驱动)
    ├── 变更分类 (API/领域模型/架构/配置)
@@ -1900,40 +1109,9 @@ review:
    └── 发送通知 (Slack/邮件)
 ```
 
-### 5.7 SpecKit 知识库配置
-
-**配置文件** (`.specify/knowledge-config.yaml`)：
-
-```yaml
-knowledge_sources:
-  enterprise:
-    enabled: true
-    path: "../docs-knowledge/enterprise-standards"
-  project:
-    enabled: true
-    path: "../docs-knowledge/project-xxx"
-  repository:
-    context: ".knowledge/context.md"
-    code_derived: ".knowledge/code-derived/"
-
-architecture_compliance:
-  enabled: true
-  strict_mode: true  # true: 违规阻止流程
-  skip_principles: []  # 可跳过的原则（需理由）
-```
-
-**错误代码**：
-
-| 代码     | 含义             | 处理     |
-| -------- | ---------------- | -------- |
-| ARCH-001 | 违反企业架构原则 | 阻止流程 |
-| ARCH-002 | ADR 冲突         | 阻止流程 |
-| ARCH-003 | 模块边界越界     | 警告     |
-| KNOW-001 | 知识库不可访问   | 跳过检查 |
-
 ---
 
-## 6. 统一工具链
+## 第六章：统一工具链
 
 ### 6.1 AI 编码工具
 
@@ -1947,7 +1125,7 @@ architecture_compliance:
 
 #### 6.1.2 Agent 架构
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                    Agent 架构                                │
 ├─────────────────────────────────────────────────────────────┤
@@ -1992,8 +1170,6 @@ architecture_compliance:
 
 #### 6.3.1 代码分析技术栈
 
-为支撑代码衍生文档（code-derived）的自动生成，需要多语言代码分析能力：
-
 **语言分析器选型**：
 
 | 语言                 | 分析技术    | 分析器                     | 提取能力                         |
@@ -2005,62 +1181,9 @@ architecture_compliance:
 | **C#**         | Tree-sitter | `tree-sitter-c-sharp`    | 类、方法、属性、命名空间         |
 | **C/C++**      | Tree-sitter | `tree-sitter-c/cpp`      | 函数、结构体、宏、头文件         |
 
-**依赖图构建流程**：
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    依赖图构建流程                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐           │
-│  │  文件扫描   │ → │  AST解析    │ → │  节点提取   │           │
-│  │  语言识别   │   │  语法树构建  │   │  类/函数/变量│           │
-│  └─────────────┘   └─────────────┘   └─────────────┘           │
-│                                              ↓                  │
-│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐           │
-│  │  模块聚类   │ ← │  图构建     │ ← │  调用分析   │           │
-│  │  层次结构   │   │  依赖关系   │   │  导入解析   │           │
-│  └─────────────┘   └─────────────┘   └─────────────┘           │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**核心组件**：
-
-| 组件                             | 职责               | 输出                 |
-| -------------------------------- | ------------------ | -------------------- |
-| **AnalysisService**        | 多语言代码分析入口 | 组件列表、调用关系   |
-| **CallGraphAnalyzer**      | 调用图分析         | 调用链、依赖关系     |
-| **DependencyGraphBuilder** | 依赖图构建         | 模块依赖树、叶子节点 |
-| **cluster_modules**        | 模块聚类           | 层次化模块结构       |
-
-**数据模型**：
-
-```
-Node {
-  id: string           # 唯一标识
-  name: string         # 名称
-  type: enum           # class/function/module
-  file_path: string    # 文件路径
-  line_number: int     # 行号
-  docstring: string    # 文档字符串
-}
-
-CallRelationship {
-  caller: Node         # 调用者
-  callee: Node         # 被调用者
-  call_type: enum      # import/call/inherit
-}
-
-Repository {
-  nodes: Node[]        # 所有节点
-  relationships: CallRelationship[]  # 所有关系
-}
-```
-
 ### 6.4 长期记忆系统
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                    长期记忆系统                              │
 ├─────────────────────────────────────────────────────────────┤
@@ -2079,20 +1202,9 @@ Repository {
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 6.5 云端沙箱
+### 6.5 质量工具链
 
-**设计要点**：
-
-| 特性                 | 说明                         |
-| -------------------- | ---------------------------- |
-| **标准化环境** | 每个Agent会话分配独立沙箱    |
-| **无状态化**   | 会话与沙箱解耦，支持水平扩容 |
-| **共享存储**   | 会话状态存储在共享存储中     |
-| **统一网关**   | 解决安全和监管问题           |
-
-### 6.6 质量工具链
-
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                    质量工具链                                │
 ├─────────────────────────────────────────────────────────────┤
@@ -2107,7 +1219,7 @@ Repository {
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 6.7 CI/CD 集成
+### 6.6 CI/CD 集成
 
 | 功能                    | 说明           | AI参与方式              |
 | ----------------------- | -------------- | ----------------------- |
@@ -2116,11 +1228,9 @@ Repository {
 | **风险预测**      | 高风险变更预警 | AI分析代码变动预测风险  |
 | **质量门禁**      | 代码质量检查   | AI辅助代码审查          |
 
-### 6.8 前端 AI Coding 模式
+### 6.7 前端 AI Coding 模式
 
-前端开发采用 **Figma MCP 实时访问模式**，实现设计稿到代码的高效转换。
-
-#### 6.8.1 推荐模式：Figma MCP 实时访问
+#### 6.7.1 推荐模式：Figma MCP 实时访问
 
 **核心优势**：
 
@@ -2131,17 +1241,15 @@ Repository {
 | 月度维护成本 | 1.5人天        | 11.5人天       | **省10人天/月** |
 | 代码质量     | AI理解设计语义 | 固定尺寸硬编码 | **返工率低60%** |
 
-**综合评分**：MCP模式 43/50 vs 导出模式 35/50
-
 **ROI分析**（5人团队年度）：
 
 - 年度节省：120人天 ≈ 0.5个全职开发产出
 - 3年净收益：$152,750
 - 首月即可回本，ROI达549%
 
-#### 6.8.2 工作流程
+#### 6.7.2 工作流程
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                Figma MCP 前端开发流程                         │
 ├─────────────────────────────────────────────────────────────┤
@@ -2159,26 +1267,15 @@ Repository {
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**实施步骤**（0.5人天启动）：
-
-| 阶段       | 任务                    | 时间   | 产出      |
-| ---------- | ----------------------- | ------ | --------- |
-| Day 1 上午 | 获取Figma Access Token  | 5分钟  | Token配置 |
-| Day 1 上午 | 配置AI工具MCP集成       | 10分钟 | 配置文件  |
-| Day 1 上午 | 测试读取组件生成代码    | 15分钟 | 测试代码  |
-| Day 1 下午 | 制定命名规范（3条规则） | 30分钟 | 规范文档  |
-| Day 2      | 团队培训                | 30分钟 | 培训记录  |
-| Week 2     | 试点2-3个页面           | -      | 最佳实践  |
-
-#### 6.8.3 设计规范要求
+#### 6.7.3 设计规范要求
 
 **命名规范**（设计师必须遵循）：
 
-| 层级 | 命名规则             | 示例                                   |
-| ---- | -------------------- | -------------------------------------- |
-| 页面 | `Page/功能模块`    | `Page/UserProfile`                   |
-| 组件 | `Component/组件名` | `Component/Button`                   |
-| 元素 | `语义化名称`       | `title`, `description`, `avatar` |
+| 层级 | 命名规则             | 示例                       |
+| ---- | -------------------- | -------------------------- |
+| 页面 | `Page/功能模块`    | `Page/UserProfile`       |
+| 组件 | `Component/组件名` | `Component/Button`       |
+| 元素 | `语义化名称`       | `title`, `description` |
 
 **设计系统要求**：
 
@@ -2186,44 +1283,9 @@ Repository {
 - 定义Design Token（颜色、字体、间距）
 - 组件使用Variants标注状态
 
-#### 6.8.4 质量保障
-
-**代码质量对比**：
-
-| 质量维度   | MCP模式                       | 导出模式        |
-| ---------- | ----------------------------- | --------------- |
-| 语义理解   | ⭐⭐⭐⭐⭐ AI理解组件关系     | ⭐⭐ 仅视觉表现 |
-| 响应式     | ⭐⭐⭐⭐ 基于约束生成弹性布局 | ⭐ 固定尺寸     |
-| 可维护性   | ⭐⭐⭐⭐ 清晰组件拆分         | ⭐⭐ 需大量重构 |
-| TypeScript | ⭐⭐⭐⭐ 推断正确类型         | ⭐⭐ 类型缺失   |
-
-**审查清单**：
-
-- [ ] 组件拆分符合设计系统
-- [ ] 样式使用CSS变量/主题系统
-- [ ] 响应式断点正确
-- [ ] 无绝对定位硬编码
-
-#### 6.8.5 风险与应对
-
-| 风险       | 概率 | 应对策略                     |
-| ---------- | ---- | ---------------------------- |
-| API故障    | 低   | 缓存常用设计稿；备用导出方案 |
-| API限流    | 中   | 申请团队Token；分时段访问    |
-| AI理解偏差 | 中   | 迭代优化提示词；人工复核     |
-| Token泄露  | 低   | 使用只读Token；定期轮换      |
-
-**特殊场景替代方案**：
-
-| 场景                  | 推荐方案 | 理由         |
-| --------------------- | -------- | ------------ |
-| 离线环境（军工/政府） | 导出模式 | 数据安全优先 |
-| 遗留项目重构          | 导出模式 | 需要版本追溯 |
-| 日常开发迭代          | MCP模式  | 效率优先     |
-
 ---
 
-## 7. 质量保障
+## 第七章：质量保障
 
 ### 7.1 SDD 质量门禁
 
@@ -2273,8 +1335,6 @@ Repository {
 
 ### 7.5 AI 辅助文档生成
 
-文档是知识传承的关键，但传统文档维护成本高、易过时。AI 辅助文档生成将文档嵌入交付流程，实现自动化生成和持续更新。
-
 #### 7.5.1 文档生成能力
 
 | 文档类型                | AI 能力                           | 触发时机     |
@@ -2285,17 +1345,9 @@ Repository {
 | **Release Notes** | 基于 Commit/PR 总结关键变更       | 发布时       |
 | **Runbook**       | 生成运维操作手册初稿              | 新服务上线时 |
 
-#### 7.5.2 D-R-O 职责分工
+#### 7.5.2 自动化触发机制
 
-| 层级           | 内容                                                                    |
-| -------------- | ----------------------------------------------------------------------- |
-| **委派** | 模块摘要初稿、API 输入输出描述、依赖列表、PR 变更摘要、Runbook 模板填充 |
-| **审查** | 核心服务概述、公共 API/SDK 文档、操作手册步骤验证、架构页面准确性       |
-| **掌控** | 文档整体策略和结构、AI 遵循的模板和标准、面向外部/安全关键/法律合规文档 |
-
-#### 7.5.3 自动化触发机制
-
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────────┐
 │                    文档自动化流程                                 │
 ├─────────────────────────────────────────────────────────────────┤
@@ -2314,30 +1366,7 @@ Repository {
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### 7.5.4 AGENTS.md 文档配置
-
-在仓库的 `AGENTS.md` 中配置文档生成规则：
-
-```markdown
-## 文档配置
-
-### 更新规则
-- 代码变更时更新: docs/api/*.md, docs/modules/*.md
-- Release 时生成: CHANGELOG.md, docs/release-notes/
-- 新模块时创建: docs/modules/{module-name}.md
-
-### 文档模板
-- API 文档模板: .templates/api-doc.md
-- 模块文档模板: .templates/module-doc.md
-- Runbook 模板: .templates/runbook.md
-
-### 质量要求
-- 必须包含: 概述、使用示例、参数说明
-- 格式规范: 使用 Markdown，代码块标注语言
-- 图表语法: Mermaid
-```
-
-#### 7.5.5 文档质量门禁
+#### 7.5.3 文档质量门禁
 
 | 检查项 | 标准                   | 检查方式           |
 | ------ | ---------------------- | ------------------ |
@@ -2346,33 +1375,27 @@ Repository {
 | 一致性 | 文档与代码行为一致     | 示例代码可运行测试 |
 | 完整性 | 必填字段无遗漏         | 模板校验           |
 
-#### 7.5.6 渐进式文档生成策略
+#### 7.5.4 渐进式文档生成策略
 
 基于代码依赖关系的智能文档生成策略，采用动态规划方法从叶子模块逐步构建到仓库概览：
 
-**生成策略**：
-
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────────┐
 │                  渐进式文档生成策略                                │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  第一步：拓扑排序                                                │
-│  ─────────────────                                              │
 │  根据依赖关系确定处理顺序：被依赖的模块优先处理                    │
 │                                                                 │
 │  第二步：叶子模块处理                                             │
-│  ─────────────────                                              │
 │  为无子模块的叶子节点生成详细文档                                 │
 │  • 类图、函数签名、使用示例                                       │
 │                                                                 │
 │  第三步：父模块聚合                                               │
-│  ─────────────────                                              │
 │  基于子模块文档生成父模块概述                                     │
 │  • 子模块关系、数据流、接口摘要                                   │
 │                                                                 │
 │  第四步：仓库概览                                                 │
-│  ─────────────────                                              │
 │  基于所有模块文档生成端到端架构概览                               │
 │  • 端到端架构图、模块职责矩阵、快速入口                           │
 │                                                                 │
@@ -2388,41 +1411,9 @@ Repository {
 | **叶子模块** | 无子模块            | 直接生成详细文档   | 完整 Agent 工具链         |
 | **父模块**   | 有子模块            | 基于子模块文档聚合 | 子文档读取 + LLM          |
 
-**处理顺序算法**（拓扑排序）：
-
-```python
-def get_processing_order(module_tree, parent_path=[]):
-    """使用拓扑排序获取处理顺序（叶子模块优先）"""
-    processing_order = []
-
-    def collect_modules(tree, path):
-        for module_name, module_info in tree.items():
-            current_path = path + [module_name]
-
-            # 如果有子模块，先递归处理子模块
-            if module_info.get("children"):
-                collect_modules(module_info["children"], current_path)
-                # 子模块处理完后，添加父模块
-                processing_order.append((current_path, module_name))
-            else:
-                # 叶子模块立即添加
-                processing_order.append((current_path, module_name))
-
-    collect_modules(module_tree, parent_path)
-    return processing_order
-```
-
-**Agent 编排策略**：
-
-| 模块类型           | Agent 模式 | 工具配置                                       |
-| ------------------ | ---------- | ---------------------------------------------- |
-| **简单叶子** | 单次调用   | `[view_file, dependency_context]`            |
-| **复杂叶子** | 循环调用   | `[view_file, dependency_context, edit_file]` |
-| **父模块**   | 单次调用   | `[view_file]`（读取子模块文档）              |
-
 ---
 
-## 8. 实施路径
+## 第八章：实施路径
 
 ### 8.1 第一阶段：基础构建（1-2个月）
 
@@ -2480,7 +1471,7 @@ def get_processing_order(module_tree, parent_path=[]):
 
 ---
 
-## 9. 度量与优化
+## 第九章：度量与优化
 
 ### 9.1 SDD/TDD 效能指标
 
@@ -2520,7 +1511,7 @@ def get_processing_order(module_tree, parent_path=[]):
 
 ---
 
-## 10. 风险与应对
+## 第十章：风险与应对
 
 ### 10.1 技术风险
 
@@ -2548,13 +1539,13 @@ def get_processing_order(module_tree, parent_path=[]):
 
 ---
 
-## 11. GitHub 生态全栈方案
+## 第十一章：GitHub 生态全栈方案
 
 本章介绍基于 GitHub 生态的 AI Coding 研发流程完整技术栈，覆盖规划、开发、交付、安全全链路。
 
 ### 11.1 技术栈全景
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    GitHub 生态 AI Coding 全栈                        │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -2592,84 +1583,6 @@ def get_processing_order(module_tree, parent_path=[]):
 | **任务分配** | Assignees + Copilot | **可直接分配给 Copilot** | Copilot 自主编码、创建 PR  |
 | **里程碑**   | Milestones          | -                              | 版本规划，进度跟踪         |
 
-#### 11.2.2 Issue 模板配置
-
-```yaml
-# .github/ISSUE_TEMPLATE/feature_request.yml
-name: 功能需求
-description: 提交新功能需求
-title: "[Feature] "
-labels: ["enhancement", "triage"]
-body:
-  - type: markdown
-    attributes:
-      value: |
-        请按照 SDD 规范填写需求信息
-
-  - type: textarea
-    id: user-story
-    attributes:
-      label: 用户故事
-      description: 作为[角色]，我希望[功能]，以便[价值]
-      placeholder: "作为用户，我希望..."
-    validations:
-      required: true
-
-  - type: textarea
-    id: acceptance-criteria
-    attributes:
-      label: 验收标准
-      description: 列出验收条件（Given-When-Then）
-      placeholder: |
-        - [ ] Given...When...Then...
-    validations:
-      required: true
-
-  - type: dropdown
-    id: priority
-    attributes:
-      label: 优先级
-      options:
-        - P0-紧急
-        - P1-高
-        - P2-中
-        - P3-低
-    validations:
-      required: true
-
-  - type: textarea
-    id: technical-notes
-    attributes:
-      label: 技术备注
-      description: 可选的技术实现建议
-```
-
-#### 11.2.3 Projects 自动化规则
-
-```yaml
-# Projects 自动化配置示例
-automations:
-  # Issue 创建时自动添加到 Backlog
-  - trigger: issue_opened
-    action: add_to_project
-    column: Backlog
-
-  # PR 创建时自动关联 Issue
-  - trigger: pull_request_opened
-    action: link_to_issue
-    pattern: "closes #\\d+"
-
-  # PR 合并时自动移动到 Done
-  - trigger: pull_request_merged
-    action: move_to_column
-    column: Done
-
-  # 分配给 Copilot 时自动添加标签
-  - trigger: assigned_to_copilot
-    action: add_label
-    label: "ai-coding"
-```
-
 ### 11.3 开发层：GitHub Copilot 家族
 
 #### 11.3.1 Copilot 产品矩阵
@@ -2697,7 +1610,7 @@ automations:
 
 #### 11.3.3 Copilot Workspace 工作流
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────────────┐
 │                  Copilot Workspace 工作流                            │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -2721,14 +1634,6 @@ automations:
 
 将 Issue 直接分配给 Copilot，AI 自主完成编码：
 
-**工作机制**：
-
-1. 开发者将 Issue 分配给 `@copilot`
-2. Copilot 在云端启动开发环境（基于 Actions）
-3. 自主分析代码库、编写代码、运行测试
-4. 创建 Draft PR 并持续推送 commits
-5. 开发者审查、反馈，Copilot 响应修改
-
 **适用场景**：
 
 | 场景       | 适合度     | 说明                   |
@@ -2738,19 +1643,6 @@ automations:
 | 重构任务   | ⭐⭐⭐     | 需要清晰的重构指令     |
 | 复杂功能   | ⭐⭐       | 建议人工主导，AI 辅助  |
 | 架构设计   | ⭐         | 不适合，需人类决策     |
-
-#### 11.3.5 Agent HQ 多 Agent 编排
-
-GitHub Agent HQ（Universe 2025 发布）支持多家 AI Agent 协作：
-
-| Agent 提供商               | 特点                | 集成状态 |
-| -------------------------- | ------------------- | -------- |
-| **GitHub Copilot**   | 原生集成，深度优化  | ✅ 可用  |
-| **Anthropic Claude** | 长上下文，复杂推理  | ✅ 可用  |
-| **OpenAI**           | GPT-4o, o1, o3-mini | ✅ 可用  |
-| **Google Gemini**    | Gemini 2.0 Flash    | ✅ 可用  |
-| **Cognition Devin**  | 自主软件工程师      | 🔜 即将  |
-| **xAI Grok**         | 实时信息            | 🔜 即将  |
 
 ### 11.4 交付层：GitHub Actions
 
@@ -2766,183 +1658,7 @@ GitHub Agent HQ（Universe 2025 发布）支持多家 AI Agent 协作：
 
 #### 11.4.2 AI 增强的 Actions
 
-**Issue 智能分类**：
-
-```yaml
-# .github/workflows/ai-issue-triage.yml
-name: AI Issue Triage
-
-on:
-  issues:
-    types: [opened]
-
-jobs:
-  triage:
-    runs-on: ubuntu-latest
-    steps:
-      - name: AI 分析 Issue
-        uses: actions/ai-inference@v1
-        id: analysis
-        with:
-          model: gpt-4o-mini
-          prompt: |
-            分析以下 Issue，返回 JSON 格式：
-            {
-              "type": "bug|feature|question|docs",
-              "priority": "P0|P1|P2|P3",
-              "components": ["组件列表"],
-              "is_complete": true/false,
-              "missing_info": ["缺失信息列表"]
-            }
-
-            Issue 标题: ${{ github.event.issue.title }}
-            Issue 内容: ${{ github.event.issue.body }}
-
-      - name: 添加标签
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const analysis = JSON.parse('${{ steps.analysis.outputs.result }}');
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: [analysis.type, analysis.priority]
-            });
-
-      - name: 请求补充信息
-        if: steps.analysis.outputs.result.is_complete == 'false'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const analysis = JSON.parse('${{ steps.analysis.outputs.result }}');
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `感谢提交！为了更好地处理，请补充以下信息：\n${analysis.missing_info.map(i => '- ' + i).join('\n')}`
-            });
-```
-
-**PR 自动摘要**：
-
-```yaml
-# .github/workflows/pr-summary.yml
-name: PR Summary
-
-on:
-  pull_request:
-    types: [opened, synchronize]
-
-jobs:
-  summarize:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 获取变更
-        id: diff
-        run: |
-          echo "diff<<EOF" >> $GITHUB_OUTPUT
-          git diff ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} --stat >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: AI 生成摘要
-        uses: actions/ai-inference@v1
-        id: summary
-        with:
-          model: gpt-4o-mini
-          prompt: |
-            根据以下代码变更，生成 PR 摘要：
-
-            变更统计:
-            ${{ steps.diff.outputs.diff }}
-
-            请生成：
-            1. 变更概述（1-2句话）
-            2. 主要改动点（bullet points）
-            3. 潜在影响
-            4. 建议的审查重点
-
-      - name: 更新 PR 描述
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const summary = `${{ steps.summary.outputs.result }}`;
-            const currentBody = context.payload.pull_request.body || '';
-            const newBody = currentBody + '\n\n---\n## AI 生成摘要\n' + summary;
-            await github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              body: newBody
-            });
-```
-
-**每周 Issue 总结**：
-
-```yaml
-# .github/workflows/weekly-summary.yml
-name: Weekly Issue Summary
-
-on:
-  schedule:
-    - cron: '0 9 * * 1'  # 每周一早9点
-  workflow_dispatch:
-
-jobs:
-  summary:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 获取本周 Issues
-        uses: actions/github-script@v7
-        id: issues
-        with:
-          script: |
-            const lastWeek = new Date();
-            lastWeek.setDate(lastWeek.getDate() - 7);
-            const issues = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              since: lastWeek.toISOString(),
-              state: 'all'
-            });
-            return issues.data.map(i => ({
-              title: i.title,
-              state: i.state,
-              labels: i.labels.map(l => l.name)
-            }));
-
-      - name: AI 生成周报
-        uses: actions/ai-inference@v1
-        id: report
-        with:
-          model: gpt-4o-mini
-          prompt: |
-            根据以下本周 Issues 数据生成周报：
-            ${{ steps.issues.outputs.result }}
-
-            包含：
-            1. 本周新增 Issues 统计
-            2. 已关闭 Issues 统计
-            3. 按类型分类汇总
-            4. 优先级分布
-            5. 建议下周关注重点
-
-      - name: 创建周报 Issue
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `📊 Weekly Summary - ${new Date().toISOString().split('T')[0]}`,
-              body: `${{ steps.report.outputs.result }}`,
-              labels: ['weekly-summary']
-            });
-```
+**Issue 智能分类、PR 自动摘要、每周 Issue 总结** 等 AI 驱动的自动化 Actions 可显著提升团队效率。
 
 ### 11.5 安全与质量层
 
@@ -2954,279 +1670,22 @@ jobs:
 | **GitHub Code Security**     | $30/人/月 | CodeQL 扫描、Copilot Autofix、安全战役、依赖审查 |
 | **Dependabot**               | 免费      | 依赖漏洞告警、自动更新 PR、版本更新              |
 
-#### 11.5.2 安全配置
+### 11.6 与 AI Coding 流程体系集成
 
-```yaml
-# .github/dependabot.yml
-version: 2
-updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "security"
-    reviewers:
-      - "security-team"
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      production-dependencies:
-        patterns:
-          - "*"
-        exclude-patterns:
-          - "@types/*"
-          - "*-types"
-      development-dependencies:
-        dependency-type: "development"
-```
+#### 11.6.1 流程映射
 
-```yaml
-# .github/workflows/security-scan.yml
-name: Security Scan
+| AI Coding 流程阶段     | GitHub 工具                                  | 集成方式                                |
+| ---------------------- | -------------------------------------------- | --------------------------------------- |
+| **SDD 规范驱动** | Issues + Projects                            | Issue 模板定义规格，Projects 管理工作流 |
+| **TDD 测试驱动** | Actions + Copilot                            | Actions 运行测试，Copilot 生成测试代码  |
+| **Code Review**  | PR + Code Security                           | Copilot 自动审查，CodeQL 安全扫描       |
+| **知识库 L2**    | `.copilot-instructions.md` + `AGENTS.md` | 项目级 AI 指令配置                      |
+| **文档生成**     | Actions + CodeWiki                           | PR 合并触发文档更新                     |
+| **安全保障**     | Secret Protection + Dependabot               | 自动检测密钥泄露和依赖漏洞              |
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: '0 2 * * 1'  # 每周一凌晨2点
+#### 11.6.2 SDD + GitHub 集成工作流
 
-jobs:
-  codeql:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript, typescript
-          queries: security-extended
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:javascript"
-
-  secret-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Secret Scanning
-        uses: trufflesecurity/trufflehog@main
-        with:
-          extra_args: --only-verified
-
-  dependency-review:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-          deny-licenses: GPL-3.0, AGPL-3.0
-```
-
-#### 11.5.3 安全门禁配置
-
-```yaml
-# Branch Protection Rules（通过 GitHub UI 或 API 配置）
-branch_protection:
-  required_status_checks:
-    strict: true
-    contexts:
-      - "codeql"
-      - "secret-scan"
-      - "dependency-review"
-      - "test"
-      - "build"
-
-  required_pull_request_reviews:
-    required_approving_review_count: 2
-    dismiss_stale_reviews: true
-    require_code_owner_reviews: true
-    require_last_push_approval: true
-
-  restrictions:
-    users: []
-    teams: ["maintainers"]
-
-  enforce_admins: true
-  required_linear_history: true
-  allow_force_pushes: false
-  allow_deletions: false
-```
-
-### 11.6 项目级 AI 配置
-
-#### 11.6.1 .copilot-instructions.md
-
-```markdown
-# Copilot Instructions
-
-## 项目概述
-这是一个 TypeScript + React 的前端项目，使用 Vite 构建。
-
-## 编码规范
-
-### 命名约定
-- 组件: PascalCase (e.g., `UserProfile.tsx`)
-- 函数: camelCase (e.g., `getUserData()`)
-- 常量: UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`)
-- 类型/接口: PascalCase with prefix (e.g., `IUserProps`, `TUserState`)
-
-### 代码风格
-- 使用 TypeScript strict 模式
-- 优先使用函数组件 + Hooks
-- 使用 named exports 而非 default exports
-- 每个文件不超过 300 行
-
-### 测试要求
-- 所有公共函数必须有单元测试
-- 测试文件放在 `__tests__` 目录
-- 使用 Vitest 测试框架
-- 覆盖率目标: 80%
-
-### 注释规范
-- 公共 API 必须有 JSDoc 注释
-- 复杂逻辑需要行内注释
-- TODO 格式: `// TODO(username): description`
-
-## 禁止事项
-- 不要使用 `any` 类型
-- 不要使用 `console.log`（使用 logger）
-- 不要提交 `.env` 文件
-- 不要使用已废弃的 API
-
-## 依赖管理
-- 新增依赖前先确认是否已有类似功能
-- 优先使用项目已有依赖
-- 大型依赖需要讨论后再添加
-```
-
-#### 11.6.2 AGENTS.md
-
-```markdown
-# AGENTS.md - AI Agent 协作配置
-
-## 环境配置
-
-### 构建命令
-```bash
-npm install      # 安装依赖
-npm run build    # 构建项目
-npm run dev      # 启动开发服务器
-```
-
-### 测试命令
-
-```bash
-npm test              # 运行所有测试
-npm run test:unit     # 单元测试
-npm run test:e2e      # E2E 测试
-npm run coverage      # 生成覆盖率报告
-```
-
-### Linter 命令
-
-```bash
-npm run lint          # 运行 ESLint
-npm run lint:fix      # 自动修复
-npm run typecheck     # TypeScript 类型检查
-```
-
-## 质量门禁
-
-### 必须通过
-
-- [ ] `npm run lint` 无错误
-- [ ] `npm run typecheck` 无错误
-- [ ] `npm test` 全部通过
-- [ ] 代码覆盖率 ≥ 80%
-
-### 提交前检查
-
-- [ ] 新代码有对应测试
-- [ ] 更新相关文档
-- [ ] 无敏感信息泄露
-
-## 文件操作权限
-
-### 可修改
-
-- `src/**/*` - 源代码
-- `tests/**/*` - 测试文件
-- `docs/**/*` - 文档
-
-### 禁止修改
-
-- `.env*` - 环境变量
-- `credentials.*` - 凭证文件
-- `secrets/` - 密钥目录
-- `.github/workflows/*` - CI/CD 配置（需人工审批）
-
-### 禁止删除
-
-- `tests/` - 测试目录
-- `migrations/` - 数据库迁移
-- `src/core/` - 核心模块
-
-## 代码审查要点
-
-### 安全检查
-
-- 无硬编码密钥
-- 输入已校验
-- SQL 已参数化
-- XSS 已防护
-
-### 性能检查
-
-- 无 N+1 查询
-- 大循环已优化
-- 内存泄漏已处理
-
-### 架构检查
-
-- 遵循分层架构
-- 依赖方向正确
-- 接口契约完整
-
-```
-
-### 11.7 与 AI Coding 流程体系集成
-
-#### 11.7.1 流程映射
-
-| AI Coding 流程阶段 | GitHub 工具 | 集成方式 |
-|-------------------|-------------|----------|
-| **SDD 规范驱动** | Issues + Projects | Issue 模板定义规格，Projects 管理工作流 |
-| **TDD 测试驱动** | Actions + Copilot | Actions 运行测试，Copilot 生成测试代码 |
-| **Code Review** | PR + Code Security | Copilot 自动审查，CodeQL 安全扫描 |
-| **知识库 L2** | `.copilot-instructions.md` + `AGENTS.md` | 项目级 AI 指令配置 |
-| **文档生成** | Actions + CodeWiki | PR 合并触发文档更新 |
-| **安全保障** | Secret Protection + Dependabot | 自动检测密钥泄露和依赖漏洞 |
-
-#### 11.7.2 SDD 工作流集成
-
-```
-
+```plaintext
 ┌─────────────────────────────────────────────────────────────────────┐
 │              SDD + GitHub 集成工作流                                  │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -3267,29 +1726,15 @@ npm run typecheck     # TypeScript 类型检查
 │  └─────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
-
 ```
 
-#### 11.7.3 D-R-O 职责映射
+### 11.7 推荐方案
 
-| SDLC 阶段 | 委派 (GitHub AI) | 审查 (人类 + GitHub) | 掌控 (人类) |
-|-----------|------------------|---------------------|-------------|
-| **规划** | Copilot 分解 Issue、估算工时 | Projects 看板审查 | 优先级决策、里程碑规划 |
-| **设计** | Copilot Workspace 生成 Spec | PR Review 验证设计 | 架构决策、技术选型 |
-| **构建** | Coding Agent 实现功能 | Actions 测试 + CodeQL 扫描 | 复杂逻辑、核心模块 |
-| **测试** | Copilot 生成测试用例 | Actions 运行测试 + 覆盖率 | 测试策略、质量标准 |
-| **审查** | Copilot Code Review | 人工审查 + 安全门禁 | 最终合并决策 |
-| **文档** | CodeWiki 自动生成 | 人工验证准确性 | 对外文档、关键文档 |
-| **运维** | Dependabot 自动更新 | 安全告警审查 | 生产事故处理 |
-
-### 11.8 推荐方案
-
-#### 11.8.1 按团队规模选型
+#### 11.7.1 按团队规模选型
 
 **个人开发者 / 小团队（1-5人）**：
 
-```
-
+```plaintext
 GitHub Free + Copilot Pro ($10/月)
 ├── Issues + Projects（基础看板）
 ├── Copilot 代码补全 + Chat
@@ -3297,13 +1742,11 @@ GitHub Free + Copilot Pro ($10/月)
 ├── Dependabot（免费）
 ├── Secret Scanning（公开仓库免费）
 └── 月成本: ~$10/人
-
 ```
 
 **中型团队（5-50人）**：
 
-```
-
+```plaintext
 GitHub Team ($4/人/月) + Copilot Business ($19/人/月)
 ├── Projects 高级功能
 ├── Copilot Agent Mode
@@ -3312,13 +1755,11 @@ GitHub Team ($4/人/月) + Copilot Business ($19/人/月)
 ├── Protected Branches + Required Reviews
 ├── CODEOWNERS
 └── 月成本: ~$23-42/人
-
 ```
 
 **大型团队 / 企业（50+人）**：
 
-```
-
+```plaintext
 GitHub Enterprise + Copilot Enterprise ($39/人/月)
 ├── Copilot Workspace + Coding Agent
 ├── Agent HQ（多 Agent 编排）
@@ -3328,10 +1769,9 @@ GitHub Enterprise + Copilot Enterprise ($39/人/月)
 ├── 自托管 Runners
 ├── 专属支持
 └── 月成本: ~$60-100/人（含 GHAS）
-
 ```
 
-#### 11.8.2 实施路径
+#### 11.7.2 实施路径
 
 **第一阶段：基础能力（1-2周）**
 
@@ -3364,22 +1804,22 @@ GitHub Enterprise + Copilot Enterprise ($39/人/月)
 
 ---
 
-## 12. 附录
+## 附录
 
-### 12.1 术语表
+### A. 术语表
 
-| 术语 | 定义 |
-|------|------|
-| **SDD** | Specification-Driven Development，规范驱动开发 |
-| **TDD** | Test-Driven Development，测试驱动开发 |
-| **MCP** | Model Context Protocol，模型上下文协议 |
-| **RAG** | Retrieval-Augmented Generation，检索增强生成 |
-| **ADR** | Architecture Decision Record，架构决策记录 |
-| **HITL** | Human-In-The-Loop，人工监督 |
-| **GHAS** | GitHub Advanced Security，GitHub 高级安全 |
-| **CodeQL** | GitHub 代码查询语言，用于安全扫描 |
+| 术语             | 定义                                           |
+| ---------------- | ---------------------------------------------- |
+| **SDD**    | Specification-Driven Development，规范驱动开发 |
+| **TDD**    | Test-Driven Development，测试驱动开发          |
+| **MCP**    | Model Context Protocol，模型上下文协议         |
+| **RAG**    | Retrieval-Augmented Generation，检索增强生成   |
+| **ADR**    | Architecture Decision Record，架构决策记录     |
+| **HITL**   | Human-In-The-Loop，人工监督                    |
+| **GHAS**   | GitHub Advanced Security，GitHub 高级安全      |
+| **CodeQL** | GitHub 代码查询语言，用于安全扫描              |
 
-### 12.2 参考资源
+### B. 参考资源
 
 - [Speckit 工作流文档](./speckit/)
 - [OpenSpec 变更管理](./openspec/)
@@ -3390,246 +1830,26 @@ GitHub Enterprise + Copilot Enterprise ($39/人/月)
 - [GitHub Actions 文档](https://docs.github.com/actions)
 - [GitHub Advanced Security](https://docs.github.com/code-security)
 
-### 12.3 未来优化建议
+### C. 版本历史
 
-以下为后续版本可考虑增强的方向，基于 OpenAI《构建 AI 原生工程团队》最佳实践：
-
-#### 12.3.1 AI 辅助运维与事故响应
-
-**能力范围**：
-
-| 能力 | AI 可做 | 人类必做 |
-|------|--------|---------|
-| 日志分析 | 异常模式识别、根因推测、关联日志-提交-部署历史 | 确认根因、决定修复方案 |
-| 事故分诊 | 浮现异常指标、识别可疑代码变更 | 最终判断、敏感操作签署 |
-| 热修复 | 生成修复建议、提出补救步骤 | 审批修复、确保合规 |
-
-**MCP 集成建议**：
-- 日志聚合系统（ELK、Datadog、Splunk）
-- 部署系统（ArgoCD、Jenkins、GitHub Actions）
-- 告警系统（PagerDuty、OpsGenie）
-
-#### 12.3.2 AGENTS.md 配置标准化
-
-建议在 L2 仓库级知识库中标准化 `AGENTS.md` 配置：
-
-```markdown
-# AGENTS.md 模板
-
-## 测试配置
-- 运行命令: `npm test` / `pytest`
-- 覆盖率工具: `npm run coverage`
-- 最低覆盖率: 80%
-
-## Linter 配置
-- 运行命令: `npm run lint`
-- 自动修复: `npm run lint:fix`
-
-## 构建验证
-- 构建命令: `npm run build`
-- 类型检查: `npm run typecheck`
-
-## 禁止操作
-- 不得修改: .env*, credentials*, secrets/
-- 不得删除: tests/, migrations/, core/
-```
-
-#### 12.3.3 持久项目记忆增强
-
-**跨会话记忆能力**：
-
-- 记住之前的设计选择和约束
-- 跟踪功能从提案到部署的全过程
-- 压缩技术保持长上下文窗口效率
-
-**效果对比**：
-
-- 未接入记忆：5-10轮对话修正
-- 接入记忆：1-3轮对话
-
-#### 12.3.4 各阶段入门清单模板
-
-**规划阶段**：
-
-- [ ] 确定需要特征和源代码对齐的常见流程
-- [ ] 从基本工作流开始（如标记和去重问题）
-- [ ] 考虑高级工作流（如根据功能描述添加子任务）
-
-**设计阶段**：
-
-- [ ] 使用多模态编程智能体（接受文本和图像）
-- [ ] 通过 MCP 将设计工具与编程智能体集成
-- [ ] 利用类型化语言定义有效的属性和子组件
-
-**构建阶段**：
-
-- [ ] 从明确指定的任务开始
-- [ ] 让智能体通过 MCP 使用规划工具或编写 PLAN.md
-- [ ] 迭代 AGENTS.md 解锁测试和 linter 反馈循环
-
-**测试阶段**：
-
-- [ ] 引导模型作为单独步骤实施测试
-- [ ] 在 AGENTS.md 中设置测试覆盖率指南
-- [ ] 给智能体具体的代码覆盖率工具示例
-
-**审查阶段**：
-
-- [ ] 整理黄金标准 PR 示例作为评估集
-- [ ] 选择专门针对代码审查训练的模型
-- [ ] 定义审查质量衡量方式（如 PR 评论反应）
-
-#### 12.3.5 CodeWiki 知识库自动构建 CI/CD 集成
-
-将 CodeWiki 集成到 CI/CD 流水线，实现代码变更时自动更新知识库：
-
-**GitHub Actions 配置示例**：
-
-```yaml
-name: CodeWiki Documentation Update
-
-on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'src/**'
-      - 'lib/**'
-  workflow_dispatch:
-
-jobs:
-  update-docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install CodeWiki
-        run: pip install codewiki
-
-      - name: Configure CodeWiki
-        run: |
-          codewiki config set --api-key ${{ secrets.LLM_API_KEY }}
-          codewiki config set --base-url ${{ secrets.LLM_BASE_URL }}
-
-      - name: Generate Documentation
-        run: |
-          codewiki generate . \
-            --output .knowledge/code-derived/ \
-            --model gpt-4
-
-      - name: Commit and Push
-        run: |
-          git config user.name "CodeWiki Bot"
-          git config user.email "codewiki@bot.local"
-          git add .knowledge/code-derived/
-          git diff --staged --quiet || git commit -m "docs: auto-update code-derived documentation"
-          git push
-
-      - name: Validate Documentation
-        run: |
-          # 检查关键文件存在
-          test -f .knowledge/code-derived/overview.md
-          test -f .knowledge/code-derived/module_tree.json
-          test -f .knowledge/code-derived/metadata.json
-```
-
-**触发策略**：
-
-| 触发条件           | 更新范围 | 说明                 |
-| ------------------ | -------- | -------------------- |
-| **代码推送** | 增量更新 | 仅更新变更模块的文档 |
-| **版本发布** | 全量更新 | 重新生成完整文档     |
-| **手动触发** | 可选     | 支持按需更新         |
-| **定时任务** | 全量更新 | 周期性全量同步       |
-
-**与现有流程集成**：
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                  CI/CD 集成流程                                   │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  代码推送 → 单元测试 → 构建 → CodeWiki生成 → 文档校验 → 部署     │
-│                                    ↓                            │
-│                              知识库更新                          │
-│                                    ↓                            │
-│                          AI Agent 可消费                         │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-#### 12.3.6 代码分析技术选型参考
-
-**AST vs Tree-sitter 对比**：
-
-| 维度                 | 原生 AST                | Tree-sitter                  |
-| -------------------- | ----------------------- | ---------------------------- |
-| **语言支持**   | 单语言（如 Python ast） | 多语言统一接口               |
-| **解析精度**   | 高（语言原生）          | 高（增量解析）               |
-| **错误容忍**   | 低（语法错误即失败）    | 高（支持部分解析）           |
-| **性能**       | 快                      | 更快（增量解析）             |
-| **维护成本**   | 高（每语言单独实现）    | 低（统一查询语法）           |
-| **生态成熟度** | 语言相关                | 广泛（GitHub Linguist 使用） |
-
-**选型建议**：
-
-| 场景                        | 推荐方案          | 理由                         |
-| --------------------------- | ----------------- | ---------------------------- |
-| **Python 单语言项目** | 原生 `ast` 模块 | 原生支持，精度高，无额外依赖 |
-| **多语言混合项目**    | Tree-sitter       | 统一接口，降低复杂度         |
-| **大型代码库**        | Tree-sitter       | 增量解析，性能优势明显       |
-| **语法不完整代码**    | Tree-sitter       | 错误容忍能力强               |
-| **IDE 集成场景**      | Tree-sitter       | 实时解析，支持高亮、折叠     |
-
-**Tree-sitter 查询示例**：
-
-```scheme
-; 查询 Python 类定义
-(class_definition
-  name: (identifier) @class.name
-  body: (block) @class.body)
-
-; 查询 JavaScript 函数
-(function_declaration
-  name: (identifier) @function.name
-  parameters: (formal_parameters) @function.params)
-
-; 查询 TypeScript 接口
-(interface_declaration
-  name: (type_identifier) @interface.name
-  body: (object_type) @interface.body)
-```
-
-**语言分析器实现参考**：
-
-| 分析器                       | 语言   | 核心类                          | 提取能力                   |
-| ---------------------------- | ------ | ------------------------------- | -------------------------- |
-| `PythonASTAnalyzer`        | Python | 基于 `ast.NodeVisitor`        | 类、函数、装饰器、类型注解 |
-| `TreeSitterJSAnalyzer`     | JS     | 基于 `tree-sitter-javascript` | 函数、类、模块导出         |
-| `TreeSitterTSAnalyzer`     | TS     | 基于 `tree-sitter-typescript` | 类型定义、接口、泛型       |
-| `TreeSitterJavaAnalyzer`   | Java   | 基于 `tree-sitter-java`       | 类、方法、注解             |
-| `TreeSitterCSharpAnalyzer` | C#     | 基于 `tree-sitter-c-sharp`    | 类、方法、属性             |
-| `TreeSitterCAnalyzer`      | C      | 基于 `tree-sitter-c`          | 函数、结构体、宏           |
-| `TreeSitterCppAnalyzer`    | C++    | 基于 `tree-sitter-cpp`        | 类、方法、模板             |
-
-### 12.4 版本历史
-
-| 版本 | 日期       | 作者     | 变更说明                                                                                                                                                                                                                                                                                            |
-| ---- | ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0  | 2025-12-01 | 架构团队 | 初始版本                                                                                                                                                                                                                                                                                            |
-| 2.0  | 2025-12-01 | 架构团队 | 新增代码设计规范（SOLID原则、设计模式）、编码技巧规范；完善Code Review流程与检查清单                                                                                                                                                                                                                |
-| 2.1  | 2025-12-01 | 架构团队 | 整合SpecKit知识库增强：SDD阶段知识库集成、架构合规检查机制、知识库配置                                                                                                                                                                                                                              |
-| 2.2  | 2025-12-01 | 架构团队 | 新增前端AI Coding模式（6.8节）：Figma MCP实时访问方案、工作流程、设计规范、质量保障                                                                                                                                                                                                                 |
-| 2.3  | 2025-12-01 | 架构团队 | 基于OpenAI最佳实践优化：新增D-R-O框架（1.4节）、AI文档生成（7.5节）、各阶段D-R-O职责、未来优化建议附录                                                                                                                                                                                              |
-| 2.4  | 2025-12-01 | 架构团队 | 集成CodeWiki知识库自动构建：新增code-derived自动生成工具（5.4.1节）、代码分析技术栈（6.3.1节）、渐进式文档生成策略（7.5.6节）；附录新增CI/CD集成指南、代码分析技术选型参考                                                                                                                          |
-| 2.5  | 2025-12-01 | 架构团队 | 新增第11章GitHub生态全栈方案：规划层（Projects+Issues）、开发层（Copilot家族+Workspace+Coding Agent+Agent HQ）、交付层（Actions+AI增强）、安全层（Secret Protection+Code Security+Dependabot）；项目级AI配置（.copilot-instructions.md+AGENTS.md）；与AI Coding流程体系集成映射；按团队规模推荐方案 |
-| 2.6  | 2025-12-01 | 架构团队 | 集成知识生命周期管理增强（2.1.6节）：Feature Registry特性注册表、/speckit.archive知识沉淀命令、历史感知specify/plan增强、ADR自动生成、冲突检测机制；更新SDD工作流命令表（2.1.2节）；更新L2知识库目录结构（5.4节）新增features/目录                                                                  |
-| 2.7  | 2025-12-01 | 架构团队 | 新增上级知识库引用方案（5.4.2节）：Git Subtree vs Submodule对比、目录结构设计、.knowledge-config.yaml配置文件、操作命令与封装脚本、CLAUDE.md集成模板；更新L2目录结构新增upstream/目录                                                                                                               |
+| 版本 | 日期       | 作者     | 变更说明                                                                                      |
+| ---- | ---------- | -------- | --------------------------------------------------------------------------------------------- |
+| 1.0  | 2025-12-01 | 架构团队 | 初始版本                                                                                      |
+| 2.0  | 2025-12-01 | 架构团队 | 新增代码设计规范（SOLID原则、设计模式）、编码技巧规范；完善Code Review流程与检查清单          |
+| 2.5  | 2025-12-01 | 架构团队 | 新增知识生命周期管理（Feature Registry、/speckit.archive）、上级知识库引用方案（Git Subtree） |
+| 2.7  | 2025-12-01 | 架构团队 | 新增GitHub生态全栈方案（Projects、Copilot、Actions、Security）；完善实施路径与推荐方案        |
 
 ---
 
-**文档结束**
+**报告结束**
+
+本报告定义了一套完整的 AI Coding 研发流程体系，涵盖从需求规划到代码交付的全生命周期，通过 SDD/TDD 双驱动、多级知识空间、统一工具链和完善的质量保障机制，实现人机协同的高效软件研发模式。建议企业根据自身规模和成熟度，选择合适的实施路径，循序渐进地推进 AI Coding 转型。
+
+![AI Coding研发流程体系思维导图](https://cdn.gooo.ai/gen-images/89a7c990f3b040dbe4df27ce342e117f111a67441f3d683613470b72c55495aa.svg)
+
+![AI Coding研发流程体系架构图](https://cdn.gooo.ai/gen-images/07de0a42a50b1a69a06a2563f1718bf31b5c645c42dc568dfedae0215a4ec00f.svg)
+
+
+![AI Coding端到端研发流程图](https://cdn.gooo.ai/gen-images/915672f7ecb39b987a539fc4a35792d59426fb3cf311cf57a40c25e0988e5ceb.svg)
+
+![D-R-O委派-审查-掌控职责分工表](https://cdn.gooo.ai/gen-images/4216768688479ff413affe909607adae5e66462766904194d2928a65a0184d11.svg)
