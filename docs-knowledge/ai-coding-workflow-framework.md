@@ -1,6 +1,6 @@
 # AI Coding 研发流程体系
 
-**版本**: 2.7
+**版本**: 2.8
 **创建日期**: 2025-12-01
 **更新日期**: 2025-12-01
 **作者**: 架构团队
@@ -51,7 +51,7 @@
 
 ![AI Coding研发流程架构图](https://cdn.gooo.ai/gen-images/51740df8f5c2510ff0e71b93d34d372e87be4e55a0a08888676987e7ac37c255.svg)
 
-#### D-R-O人机协作框架图
+### D-R-O人机协作框架图
 
 清晰展示人机职责边界：委派（AI独立完成）、审查（人类验证）、掌控（人类主导），以及任务分类的判断决策树（标准化？可逆？高风险？）。
 
@@ -1316,6 +1316,135 @@ enterprise-standards/
 
 **维护方式**：架构委员会统一维护
 
+#### 5.2.1 L0 约束规范（不可覆盖）
+
+L0 企业级约束是全公司必须遵循的底线规范，**下级知识库（L1/L2）不可覆盖**。AI Coding 场景下必须强制执行。
+
+##### 5.2.1.1 安全与合规约束
+
+**security-baseline.md 核心内容**：
+
+```yaml
+# 安全红线规范（不可覆盖）
+
+authentication:  # 认证授权
+  - "禁止硬编码密码、API Key、Token、证书"
+  - "禁止在日志中输出敏感信息（密码、身份证、手机号、银行卡）"
+  - "所有外部接口必须进行身份认证"
+  - "密码必须使用 bcrypt/argon2 加密存储，禁止 MD5/SHA1"
+  - "Session/Token 必须设置合理过期时间"
+
+input_validation:  # 输入校验
+  - "所有外部输入必须校验（长度、格式、范围、类型）"
+  - "SQL 必须使用参数化查询，禁止字符串拼接"
+  - "禁止直接输出用户输入到页面（XSS 防护）"
+  - "文件上传必须校验类型、大小、内容（禁止仅校验扩展名）"
+  - "反序列化必须使用白名单机制"
+
+data_protection:  # 数据保护
+  - "PII（个人身份信息）数据必须加密存储"
+  - "跨境数据传输需符合 GDPR/数据出境规定"
+  - "数据删除敏感数据必须物理删除或脱敏，禁止仅逻辑删除"
+  - "备份数据与生产数据同等安全级别"
+
+audit_logging:  # 审计追溯
+  - "关键操作必须记录审计日志（who/when/what/where/result）"
+  - "审计日志禁止删除或篡改，保留期限 ≥6 个月"
+  - "登录失败、权限变更、数据导出必须记录"
+
+forbidden_patterns:  # 绝对禁止的代码模式
+  - "禁止 eval()、exec() 执行动态代码"
+  - "禁止反序列化不可信数据源"
+  - "禁止使用已知漏洞的依赖版本（CVE 高危）"
+  - "禁止禁用 SSL/TLS 证书校验"
+  - "禁止在生产代码中使用 TODO/FIXME 绕过安全逻辑"
+```
+
+##### 5.2.1.2 架构底线约束
+
+**architecture-principles.md 核心内容**：
+
+```yaml
+# 架构底线规范（不可覆盖）
+
+layering:  # 分层架构
+  - "禁止 Controller/Handler 直接访问 Repository/DAO（必须经过 Service）"
+  - "禁止循环依赖（A→B→C→A）"
+  - "基础设施层不得依赖业务层"
+  - "领域层不得依赖应用层"
+
+data_consistency:  # 数据一致性
+  - "跨服务数据修改必须使用分布式事务或最终一致性方案"
+  - "禁止在数据库事务中调用外部 HTTP 服务"
+  - "所有写接口必须支持幂等性（可安全重试）"
+  - "并发修改必须有乐观锁或悲观锁保护"
+
+observability:  # 可观测性
+  - "所有服务必须暴露健康检查端点 /health 或 /actuator/health"
+  - "所有服务必须接入统一监控体系（metrics/traces/logs）"
+  - "关键业务流程必须有全链路追踪（TraceId 贯穿）"
+  - "异常必须上报监控系统，禁止静默吞掉"
+
+resilience:  # 容错韧性
+  - "外部依赖调用必须设置超时时间"
+  - "核心链路必须有降级方案"
+  - "禁止单点故障（数据库、缓存、MQ 等）"
+```
+
+##### 5.2.1.3 治理流程约束
+
+**governance/review-process.md 核心内容**：
+
+```yaml
+# 治理流程规范（不可覆盖）
+
+code_review:  # 代码审查
+  - "所有代码必须至少 1 人 Review 后方可合并"
+  - "安全相关变更必须安全团队成员 Review"
+  - "架构变更（新增服务、中间件、重大重构）必须架构委员会审批"
+  - "数据库 Schema 变更必须 DBA Review"
+
+release_process:  # 发布流程
+  - "生产发布必须经过 staging/pre-production 环境验证"
+  - "发布必须有可执行的回滚方案"
+  - "业务高峰期禁止发布（由各业务线定义高峰时段）"
+  - "发布后必须进行冒烟测试验证"
+
+incident_response:  # 事故响应
+  - "P0/P1 事故必须在 15 分钟内响应"
+  - "事故处理必须记录时间线和处理过程"
+  - "事故必须进行复盘并输出改进措施"
+```
+
+##### 5.2.1.4 AI Coding 企业级约束
+
+**ai-coding-policy.md 核心内容**：
+
+```yaml
+# AI Coding 企业级约束（不可覆盖）
+
+ai_code_generation:  # 代码生成约束
+  - "AI 生成的代码必须经过人工 Review 后方可合并"
+  - "AI 不得自动提交到 main/master/release 分支"
+  - "AI 不得修改安全相关配置文件（.env、secrets、credentials）"
+  - "AI 生成的密钥/凭证必须立即失效并重新生成"
+
+ai_testing:  # 测试约束
+  - "AI 生成的测试必须有有效断言（禁止空断言、仅验证无异常）"
+  - "AI 生成的测试必须人工验证覆盖了正确的场景"
+  - "禁止 AI 自动跳过或删除失败的测试"
+
+ai_access_control:  # 访问控制
+  - "AI 工具不得访问生产环境数据库"
+  - "AI 工具不得访问包含真实用户数据的环境"
+  - "AI 对话历史中禁止包含敏感数据（脱敏后可用）"
+
+ai_audit:  # 审计要求
+  - "AI 生成的代码变更必须在 commit message 中标注"
+  - "AI 辅助的架构决策必须记录到 ADR"
+  - "AI 使用情况纳入研发效能度量"
+```
+
 ### 5.3 L1 项目级知识库
 
 **职责**：跨仓库业务知识、项目级架构决策、AI定期（其他方式待定)聚合
@@ -1359,6 +1488,336 @@ project-knowledge/
 ```
 
 **维护方式**：AI聚合 + 人工审核
+
+#### 5.3.1 L1 约束规范（可部分覆盖）
+
+L1 项目级约束是项目内部统一的规范，**部分可被 L2 仓库级覆盖**（如编码风格），但核心约束需保持一致。
+
+##### 5.3.1.1 技术栈规范
+
+**tech-stack.md 核心内容**：
+
+```yaml
+# 项目技术栈规范（项目内统一，L2 不可覆盖）
+
+languages:  # 语言版本
+  java: "17"
+  node: "20 LTS"
+  python: "3.11+"
+  go: "1.21+"
+
+frameworks:  # 框架选型
+  backend:
+    primary: "Spring Boot 3.2"
+    alternatives: []  # 禁止引入其他后端框架
+  frontend:
+    primary: "React 18 + TypeScript 5"
+    state_management: "Zustand"
+    ui_library: "Ant Design 5"
+  mobile:
+    primary: "Flutter 3.x"
+
+middleware:  # 中间件
+  database:
+    primary: "PostgreSQL 15"
+    cache: "Redis 7"
+  messaging:
+    primary: "RabbitMQ 3.12"
+    alternative: "Kafka 3.x"  # 仅高吞吐场景
+  search: "Elasticsearch 8"
+
+# 为什么是项目级？
+# - 同一项目内技术栈必须统一，降低维护成本
+# - 不同项目可能有不同选型（新项目 vs 遗留系统）
+# - 但 L2 仓库不可自行引入项目外技术栈
+```
+
+##### 5.3.1.2 编码规范
+
+**standards/coding.md 核心内容**：
+
+```yaml
+# 项目编码规范（L2 可在此基础上细化，但不可违背）
+
+naming_conventions:  # 命名规范
+  class: "PascalCase"
+  method: "camelCase"
+  constant: "UPPER_SNAKE_CASE"
+  variable: "camelCase"
+  database_table: "snake_case"
+  database_column: "snake_case"
+  api_path: "kebab-case"
+  file_name:
+    component: "PascalCase.tsx"
+    utility: "camelCase.ts"
+    test: "*.test.ts 或 *.spec.ts"
+
+code_organization:  # 代码组织
+  max_file_lines: 500        # 单文件最大行数
+  max_method_lines: 50       # 单方法最大行数
+  max_parameters: 5          # 方法最大参数数
+  max_nesting_depth: 4       # 最大嵌套层级
+  max_class_methods: 20      # 单类最大方法数
+
+documentation:  # 文档要求
+  - "公共 API 必须有 JSDoc/JavaDoc 注释"
+  - "复杂业务逻辑必须有注释说明 Why"
+  - "魔法数字必须定义为命名常量"
+  - "正则表达式必须有注释说明匹配规则"
+
+formatting:  # 格式化
+  indent: "2 spaces (JS/TS) / 4 spaces (Java/Python)"
+  line_length: 120
+  trailing_comma: "ES5"
+  semicolon: true
+  quote: "single (JS/TS) / double (Java/Python)"
+
+# L2 可覆盖项
+overridable_by_L2:
+  - max_file_lines      # 特殊模块可适当放宽
+  - max_method_lines    # 复杂算法可适当放宽
+```
+
+##### 5.3.1.3 API 设计规范
+
+**standards/api.md 核心内容**：
+
+```yaml
+# 项目 API 设计规范（项目内统一）
+
+restful_conventions:  # RESTful 规范
+  - "使用名词复数: /users, /orders, /products"
+  - "使用 HTTP 动词表达操作: GET/POST/PUT/PATCH/DELETE"
+  - "版本号放在 URL: /api/v1/users"
+  - "嵌套资源最多两层: /users/{id}/orders"
+  - "使用连字符分隔: /user-profiles（非 userProfiles）"
+
+pagination:  # 分页规范
+  style: "offset-based"
+  parameters:
+    page: "page（从 1 开始）"
+    size: "size（默认 20，最大 100）"
+  response: |
+    {
+      "data": [],
+      "pagination": {
+        "page": 1,
+        "size": 20,
+        "total": 100,
+        "totalPages": 5
+      }
+    }
+
+response_format:  # 响应格式
+  success: |
+    {
+      "code": 0,
+      "data": {},
+      "message": "success",
+      "traceId": "xxx"
+    }
+  error: |
+    {
+      "code": 40001,
+      "message": "用户不存在",
+      "details": {},
+      "traceId": "xxx"
+    }
+
+error_codes:  # 错误码规范
+  format: "{MODULE}-{CATEGORY}-{SEQ}"
+  example: "USR-AUTH-001"
+  ranges:
+    - "400xx: 客户端错误（参数、权限）"
+    - "500xx: 服务端错误（系统、依赖）"
+    - "600xx: 业务错误（规则、状态）"
+
+http_status:  # HTTP 状态码使用
+  200: "成功（GET/PUT/PATCH/DELETE）"
+  201: "创建成功（POST）"
+  204: "无内容（DELETE 成功）"
+  400: "请求参数错误"
+  401: "未认证"
+  403: "无权限"
+  404: "资源不存在"
+  409: "资源冲突"
+  422: "业务规则校验失败"
+  500: "服务器内部错误"
+  502: "网关错误"
+  503: "服务不可用"
+```
+
+##### 5.3.1.4 测试规范
+
+**standards/testing.md 核心内容**：
+
+```yaml
+# 项目测试规范（项目内统一）
+
+coverage_requirements:  # 覆盖率要求
+  unit_test:
+    line_coverage: "≥80%"
+    branch_coverage: "≥70%"
+    critical_modules: "≥90%"  # 支付、认证等核心模块
+  integration_test: "核心业务流程 100% 覆盖"
+  e2e_test: "关键用户旅程覆盖"
+
+naming_conventions:  # 测试命名
+  pattern: "should_{ExpectedBehavior}_when_{Condition}"
+  examples:
+    - "should_return_user_when_id_exists"
+    - "should_throw_exception_when_user_not_found"
+    - "should_send_email_when_order_completed"
+
+test_principles:  # 测试原则
+  - "每个测试只验证一个行为（Single Assertion Principle）"
+  - "测试必须可重复执行（Repeatable）"
+  - "测试之间禁止相互依赖（Independent）"
+  - "测试必须能自动判断通过/失败（Self-Validating）"
+  - "测试应及时编写（Timely）"
+
+mocking_rules:  # Mock 规则
+  - "Mock 外部依赖（HTTP、数据库、MQ），不 Mock 被测代码内部逻辑"
+  - "优先使用 Fake 实现而非 Mock 框架"
+  - "Mock 数据必须符合真实数据格式"
+  - "禁止 Mock 私有方法"
+
+test_data:  # 测试数据
+  - "使用 Builder 或 Factory 模式创建测试数据"
+  - "测试数据与生产数据隔离"
+  - "敏感数据必须脱敏"
+
+ai_test_constraints:  # AI 测试约束（继承 L0）
+  - "AI 生成的测试必须有有效断言"
+  - "禁止仅验证'不抛异常'的测试"
+  - "边界条件必须覆盖（null、空、边界值）"
+  - "AI 生成测试后必须人工 Review 断言有效性"
+```
+
+##### 5.3.1.5 领域模型与术语
+
+**business/glossary.md 核心内容**：
+
+```yaml
+# 项目术语词典（AI 必读，确保术语一致性）
+
+# 核心实体术语
+entities:
+  user: "用户（非：客户、会员、账号、账户）"
+  order: "订单（非：工单、单据、交易单）"
+  product: "商品（非：产品、货品、SKU）"
+  payment: "支付（非：付款、结算、交易）"
+  merchant: "商户（非：商家、卖家、店铺）"
+
+# 状态枚举（AI 生成代码时必须使用这些状态值）
+enums:
+  order_status:
+    CREATED: "已创建 - 订单刚创建，未支付"
+    PENDING_PAYMENT: "待支付 - 等待用户支付"
+    PAID: "已支付 - 支付成功，待发货"
+    SHIPPED: "已发货 - 商品已出库"
+    DELIVERED: "已送达 - 用户已签收"
+    COMPLETED: "已完成 - 交易完成"
+    CANCELLED: "已取消 - 订单取消"
+    REFUNDING: "退款中 - 申请退款处理中"
+    REFUNDED: "已退款 - 退款完成"
+
+  user_status:
+    ACTIVE: "正常"
+    INACTIVE: "未激活"
+    SUSPENDED: "已冻结"
+    DELETED: "已注销"
+
+# 业务规则术语
+business_terms:
+  GMV: "成交总额（Gross Merchandise Volume）"
+  SKU: "库存单位（Stock Keeping Unit）"
+  SPU: "标准产品单位（Standard Product Unit）"
+  COD: "货到付款（Cash On Delivery）"
+
+# 禁止混用的术语
+forbidden_aliases:
+  - "禁止将 '用户' 写成 '客户'（客户专指 B 端）"
+  - "禁止将 '订单' 写成 '工单'（工单指内部流程单）"
+  - "禁止将 '商品' 写成 '产品'（产品指产品线）"
+
+# 为什么是项目级？
+# - 领域模型是项目业务的核心
+# - AI 必须使用统一术语生成代码
+# - 不同项目领域模型不同
+```
+
+##### 5.3.1.6 AI Coding 项目级指导
+
+**standards/ai-coding-guide.md 核心内容**：
+
+```yaml
+# AI Coding 项目级指导规范
+
+knowledge_reading_order:  # AI 知识库读取顺序
+  1: ".knowledge/context.md - 仓库特有规则（最高优先级）"
+  2: ".knowledge/code-derived/overview.md - 现有代码结构"
+  3: ".knowledge/upstream/L1-project/business/glossary.md - 术语词典"
+  4: ".knowledge/upstream/L1-project/architecture/tech-stack.md - 技术栈"
+  5: ".knowledge/upstream/L1-project/standards/*.md - 项目规范"
+  6: ".knowledge/upstream/L0-enterprise/security/*.md - 安全基线"
+
+code_generation_rules:  # 代码生成规则
+  must_follow:
+    - "必须使用项目指定的技术栈和框架"
+    - "必须使用项目术语词典中的标准术语"
+    - "必须遵循项目 API 响应格式"
+    - "必须遵循项目错误码规范"
+    - "必须参考现有代码模式（code-derived）"
+
+  must_avoid:
+    - "禁止引入项目技术栈外的依赖"
+    - "禁止自创术语或状态枚举值"
+    - "禁止偏离现有代码风格"
+
+prompt_templates:  # Prompt 模板
+  feature_implementation: |
+    ## 任务
+    实现 [功能名称]
+
+    ## 必读知识库
+    - 术语词典: @glossary.md
+    - 技术栈: @tech-stack.md
+    - 现有模块: @code-derived/overview.md
+
+    ## 约束
+    - 技术栈: [从 tech-stack.md 读取]
+    - 术语: 必须使用 glossary.md 中的标准术语
+    - 代码风格: 参考现有模块 [指定模块]
+
+    ## 排除功能
+    [明确列出不需要实现的功能]
+
+review_checklist:  # AI 代码 Review 检查清单
+  - "[ ] 是否使用了项目指定的技术栈？"
+  - "[ ] 是否使用了标准术语（对照 glossary.md）？"
+  - "[ ] 是否遵循了 API 响应格式？"
+  - "[ ] 是否遵循了错误码规范？"
+  - "[ ] 是否与现有代码风格一致？"
+  - "[ ] 是否有有效的测试覆盖？"
+  - "[ ] 是否违反了 L0 安全基线？"
+```
+
+#### 5.3.2 L0/L1 约束分层总结
+
+| 约束类别 | L0 企业级（不可覆盖） | L1 项目级（部分可覆盖） | 说明 |
+|----------|----------------------|------------------------|------|
+| **安全红线** | ✅ 强制 | - | 密码、注入、加密等绝对底线 |
+| **合规要求** | ✅ 强制 | - | GDPR、审计日志等法规要求 |
+| **架构底线** | ✅ 强制 | - | 分层、事务、可观测性 |
+| **治理流程** | ✅ 强制 | - | Review、发布、事故响应 |
+| **AI 安全约束** | ✅ 强制 | 细化指导 | AI 访问控制、审计要求 |
+| **技术栈版本** | - | ✅ 统一 | 项目内统一，跨项目可不同 |
+| **编码风格** | 基线 | ✅ 细化 | L0 定义基线，L1 细化 |
+| **API 格式** | - | ✅ 统一 | 项目内统一响应格式 |
+| **测试标准** | 基线 | ✅ 细化 | L0 定义底线，L1 定义覆盖率 |
+| **领域模型** | - | ✅ 定义 | 项目业务独有 |
+| **术语词典** | - | ✅ 定义 | AI 必须使用标准术语 |
 
 ### 5.4 L2 仓库级知识库
 
@@ -3628,7 +4087,8 @@ jobs:
 | 2.4  | 2025-12-01 | 架构团队 | 集成CodeWiki知识库自动构建：新增code-derived自动生成工具（5.4.1节）、代码分析技术栈（6.3.1节）、渐进式文档生成策略（7.5.6节）；附录新增CI/CD集成指南、代码分析技术选型参考                                                                                                                          |
 | 2.5  | 2025-12-01 | 架构团队 | 新增第11章GitHub生态全栈方案：规划层（Projects+Issues）、开发层（Copilot家族+Workspace+Coding Agent+Agent HQ）、交付层（Actions+AI增强）、安全层（Secret Protection+Code Security+Dependabot）；项目级AI配置（.copilot-instructions.md+AGENTS.md）；与AI Coding流程体系集成映射；按团队规模推荐方案 |
 | 2.6  | 2025-12-01 | 架构团队 | 集成知识生命周期管理增强（2.1.6节）：Feature Registry特性注册表、/speckit.archive知识沉淀命令、历史感知specify/plan增强、ADR自动生成、冲突检测机制；更新SDD工作流命令表（2.1.2节）；更新L2知识库目录结构（5.4节）新增features/目录                                                                  |
-| 2.7  | 2025-12-01 | 架构团队 | 新增上级知识库引用方案（5.4.2节）：Git Subtree vs Submodule对比、目录结构设计、.knowledge-config.yaml配置文件、操作命令与封装脚本、CLAUDE.md集成模板；更新L2目录结构新增upstream/目录                                                                                                               |
+| 2.7  | 2025-12-01 | 架构团队 | 新增上级知识库引用方案（5.4.2节）：Git Subtree vs Submodule对比、目录结构设计、.knowledge-config.yaml配置文件、操作命令与封装脚本、CLAUDE.md集成模板；更新L2目录结构新增upstream/目录 |
+| 2.8  | 2025-12-03 | 架构团队 | 新增约束规范分层设计：L0企业级约束（5.2.1节）包含安全合规、架构底线、治理流程、AI Coding企业级约束；L1项目级约束（5.3.1节）包含技术栈、编码规范、API设计、测试规范、领域模型术语、AI Coding项目级指导；新增L0/L1约束分层总结表（5.3.2节） |
 
 ---
 

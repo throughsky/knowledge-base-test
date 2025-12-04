@@ -1,0 +1,47 @@
+{
+    "generation_info": {
+        "timestamp": "2025-11-26T15:09:34.720190",
+        "main_model": "kimi-k2-turbo-preview",
+        "generator_version": "1.0.0",
+        "repo_path": "/Users/throughsky/workspace_claude/CodeWiki",
+        "commit_id": null
+    },
+    "statistics": {
+        "total_components": 360,
+        "leaf_nodes": 98,
+        "max_depth": 2
+    },
+    "files_generated": [
+        "overview.md",
+        "module_tree.json",
+        "first_module_tree.json",
+        "be.agent_orchestrator.md",
+        "background_worker.md",
+        "utils.md",
+        "be.agent_tools.deps.md",
+        "be.config.md",
+        "cli.md",
+        "fe.md",
+        "routes.md",
+        "be.dependency_analyzer.models.md",
+        "progress.md",
+        "be.dependency_analyzer.md",
+        "doc_generator.md",
+        "be.agent_tools.md",
+        "config_manager.md",
+        "config.md",
+        "cache_manager.md",
+        "github_processor.md",
+        "cli_models.md",
+        "models.md",
+        "be.documentation_generator.md",
+        "be.agent_tools.str_replace_editor.md",
+        "git_manager.md",
+        "html_generator.md",
+        "be.dependency_analyzer.utils.md",
+        "be.dependency_analyzer.analyzers.md",
+        "template_utils.md",
+        "be.dependency_analyzer.graph_building.md",
+        "be.dependency_analyzer.analysis.md"
+    ]
+}
