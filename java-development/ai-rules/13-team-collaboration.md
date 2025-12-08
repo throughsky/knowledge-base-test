@@ -81,7 +81,77 @@ rules:
 ### 2.1 自动化前置检查
 
 ```yaml
-# GitLab CI自动检查
+# .github/workflows/pr-check.yml
+name: PR Quality Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # 代码规范检查（CheckStyle）
+      - name: CheckStyle
+        run: mvn checkstyle:check
+
+      # 单元测试 + 覆盖率
+      - name: Test with Coverage
+        run: mvn test jacoco:report
+
+      - name: Check Coverage Threshold
+        run: |
+          COVERAGE=$(grep -oP 'Total.*?([0-9]+)%' target/site/jacoco/index.html | grep -oP '[0-9]+' | head -1)
+          if [ "$COVERAGE" -lt 80 ]; then
+            echo "❌ Coverage $COVERAGE% < 80%"
+            exit 1
+          fi
+          echo "✅ Coverage $COVERAGE% >= 80%"
+
+      # SonarQube扫描
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      # 检查SonarQube质量门禁
+      - name: SonarQube Quality Gate
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # 安全扫描（硬编码密钥检测）
+      - name: Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+
+      # MyBatis SQL注入检查
+      - name: Check MyBatis SQL Injection
+        run: |
+          if grep -rn '\$\{' --include="*.xml" src/main/resources/mapper/; then
+            echo "❌ Found \${} in MyBatis XML, use #{} instead"
+            exit 1
+          fi
+          echo "✅ MyBatis SQL injection check passed"
+
+# 检查清单
 automated_checks:
   - 代码规范（CheckStyle+SonarQube）
   - 单元测试覆盖率≥80%（JaCoCo）
@@ -90,25 +160,32 @@ automated_checks:
   - 无硬编码密钥
 ```
 
-### 2.2 MR模板
+### 2.2 PR模板
 
 ```markdown
-## MR基本信息
-- 关联需求：REQ-2025001（订单批量创建功能）
+<!-- .github/PULL_REQUEST_TEMPLATE.md -->
+## PR基本信息
+- 关联Issue：#123 或 REQ-2025001（订单批量创建功能）
 - 核心修改：OrderBatchService.java（180行）、Flyway脚本
 - 测试情况：单元测试覆盖率85%；接口测试通过
 - 依赖变更：无新增依赖
 
 ## Java核心评审点（必查）
-1. 事务边界：@Transactional是否加在正确位置？rollbackFor是否指定？
-2. 线程池：线程池参数是否合理？是否会引发OOM？
-3. SQL性能：是否有索引？是否有全表扫描？
-4. 缓存一致性：缓存更新策略是否正确？
+- [ ] 事务边界：@Transactional是否加在正确位置？rollbackFor是否指定？
+- [ ] 线程池：线程池参数是否合理？是否会引发OOM？
+- [ ] SQL性能：是否有索引？是否有全表扫描？
+- [ ] 缓存一致性：缓存更新策略是否正确？
 
 ## 风险说明
 - 无破坏性变更
 - 数据库影响：仅新增字段和索引
 - 并发测试：压测1000QPS无超时
+
+## 自检清单
+- [ ] 代码已自测通过
+- [ ] 单元测试覆盖率≥80%
+- [ ] Flyway脚本已包含（如有DB变更）
+- [ ] 提交信息符合规范
 ```
 
 ### 2.3 评审检查清单
@@ -243,8 +320,8 @@ Bug处理:
 
 | 场景 | 工具组合 | 联动逻辑 |
 |------|----------|----------|
-| 需求→开发→测试 | Jira+GitLab+SonarQube | Jira关联GitLab分支→质量达标→状态更新 |
-| 部署→监控 | GitLab CI+K8s+Prometheus | MR合并→CI构建→K8s部署→Prometheus监控 |
+| 需求→开发→测试 | Jira+GitHub+SonarQube | Jira关联GitHub分支→质量达标→状态更新 |
+| 部署→监控 | GitHub Actions+K8s+Prometheus | PR合并→Actions构建→K8s部署→Prometheus监控 |
 | 故障排查 | Arthas+ELK+SkyWalking | SkyWalking定位→Arthas排查→ELK查日志 |
 
 ## 五、文档规范 [SHOULD]
@@ -328,13 +405,13 @@ steps:
 
 | 序号 | 反模式 | 检测方式 |
 |------|--------|----------|
-| 1 | feature分支未提交Flyway脚本 | 检查MR文件列表 |
-| 2 | MR代码量超500行 | GitLab MR统计 |
+| 1 | feature分支未提交Flyway脚本 | 检查PR文件列表 |
+| 2 | PR代码量超500行 | GitHub PR统计 |
 | 3 | 事务加在子方法 | 代码评审检查 |
 | 4 | 生产变更未登记CMDB | CMDB记录查询 |
 | 5 | 业务高峰期执行重大变更 | 变更时间检查 |
 | 6 | 接口文档手动编写 | 检查Swagger配置 |
 | 7 | 故障后无复盘 | 复盘记录查询 |
 | 8 | 提交信息不规范 | Git log检查 |
-| 9 | 合并未关联Jira | MR描述检查 |
+| 9 | 合并未关联Issue | PR描述检查 |
 | 10 | 评审只关注代码风格 | 评审记录检查 |

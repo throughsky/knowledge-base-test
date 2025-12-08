@@ -171,75 +171,181 @@ stages:
   - verify          # 部署验证
 ```
 
-### 4.2 GitLab CI配置
+### 4.2 GitHub Actions配置
 
 ```yaml
-# .gitlab-ci.yml
-stages:
-  - code-check
-  - test
-  - build
-  - scan
-  - deploy
-  - verify
+# .github/workflows/deploy.yml
+name: CI/CD Pipeline
 
-variables:
-  IMAGE_REGISTRY: registry.mall.com
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   APP_NAME: mall-order
-  IMAGE_TAG: v1.0.0-$CI_COMMIT_SHORT_SHA
 
-code-check:
-  stage: code-check
-  image: sonarsource/sonar-scanner-cli
-  script:
-    - sonar-scanner -Dsonar.projectKey=$APP_NAME -Dsonar.sources=src
+jobs:
+  code-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # SonarQube需要完整历史
 
-test:
-  stage: test
-  image: maven:3.8.5-openjdk-17
-  script:
-    - mvn clean test jacoco:report
-  artifacts:
-    paths:
-      - target/site/jacoco/
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
 
-build:
-  stage: build
-  image: docker:20.10.17
-  services:
-    - docker:20.10.17-dind
-  script:
-    - docker login -u $REGISTRY_USER -p $REGISTRY_PWD $IMAGE_REGISTRY
-    - docker build -t $IMAGE_REGISTRY/$APP_NAME:$IMAGE_TAG .
-    - docker push $IMAGE_REGISTRY/$APP_NAME:$IMAGE_TAG
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ env.APP_NAME }}
+            -Dsonar.sources=src
 
-scan:
-  stage: scan
-  image: aquasec/trivy
-  script:
-    - trivy image --severity HIGH,CRITICAL $IMAGE_REGISTRY/$APP_NAME:$IMAGE_TAG
+  test:
+    runs-on: ubuntu-latest
+    needs: code-check
+    steps:
+      - uses: actions/checkout@v4
 
-deploy:
-  stage: deploy
-  image: alpine/helm:3.9.0
-  script:
-    - helm upgrade --install $APP_NAME mall-charts/$APP_NAME \
-        --namespace prod \
-        --set image.repository=$IMAGE_REGISTRY/$APP_NAME \
-        --set image.tag=$IMAGE_TAG \
-        --set replicas=3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
 
-verify:
-  stage: verify
-  image: postman/newman
-  script:
-    - newman run test/api-test.json -e test/prod-environment.json
-  after_script:
-    - |
-      if [ $CI_JOB_STATUS == "failed" ]; then
-        helm rollback $APP_NAME 0 --namespace prod
-        curl -X POST -d '{"msg":"部署失败，已自动回滚"}' $DINGTALK_WEBHOOK
-      fi
+      - name: Run Tests with Coverage
+        run: mvn clean test jacoco:report
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}
+          tags: |
+            type=sha,prefix=v1.0.0-
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  scan:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build.outputs.image_tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build, scan]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.12.0'
+
+      - name: Configure Kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          helm upgrade --install ${{ env.APP_NAME }} ./charts/${{ env.APP_NAME }} \
+            --namespace prod \
+            --set image.repository=${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }} \
+            --set image.tag=v1.0.0-${{ github.sha }} \
+            --set replicas=3 \
+            --wait --timeout=5m
+
+  verify:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run API Tests
+        id: api-test
+        continue-on-error: true
+        run: |
+          npm install -g newman
+          newman run test/api-test.json -e test/prod-environment.json
+
+      - name: Rollback on Failure
+        if: steps.api-test.outcome == 'failure'
+        run: |
+          helm rollback ${{ env.APP_NAME }} 0 --namespace prod
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{"msg":"部署失败，已自动回滚"}' \
+            ${{ secrets.WEBHOOK_URL }}
+          exit 1
+
+      - name: Notify Success
+        if: steps.api-test.outcome == 'success'
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{"msg":"部署成功: ${{ env.APP_NAME }}@v1.0.0-${{ github.sha }}"}' \
+            ${{ secrets.WEBHOOK_URL }}
 ```
 
 ### 4.3 质量门禁
