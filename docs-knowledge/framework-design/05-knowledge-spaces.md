@@ -41,6 +41,7 @@ enterprise-standards/
 │   │                               #           容错韧性、微服务通信、容器化部署
 │   ├── security-baseline.md        # 安全红线：认证、输入校验、数据保护、审计
 │   └── compliance-requirements.md  # 合规要求：GDPR、数据出境、审计保留
+│   └── constitution-template.md  # 宪章模板
 │
 ├── standards/                  # 编码规范（L0 基线，L1 可细化）
 │   ├── coding-standards/
