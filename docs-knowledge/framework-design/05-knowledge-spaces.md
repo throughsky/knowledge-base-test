@@ -211,24 +211,10 @@ project-knowledge/
 ├── upstream/                   # 上级知识库（Git Subtree 引入）
 │   └── L0-enterprise/         # 企业级知识库
 │       ├── constitution/      # 技术宪法（不可覆盖）
-│       │   ├── architecture-principles.md
-│       │   ├── security-baseline.md
-│       │   └── compliance-requirements.md
 │       ├── standards/         # 编码规范（可细化）
-│       │   ├── coding-standards/
-│       │   │   └── java.md
-│       │   ├── api-design-guide.md
-│       │   └── testing-standards.md
 │       ├── governance/        # 治理流程
-│       │   ├── review-process.md
-│       │   └── release-process.md
 │       ├── ai-coding/         # AI 编码策略
-│       │   └── ai-coding-policy.md
 │       └── technology-radar/  # 技术雷达
-│           ├── adopt.md
-│           ├── trial.md
-│           ├── assess.md
-│           └── hold.md
 │
 ├── business/                   # 业务领域知识
 │   ├── domain-model.md        # 领域模型
@@ -237,12 +223,14 @@ project-knowledge/
 │   │   ├── user-registration.md
 │   │   └── order-lifecycle.md
 │   └── rules.md               # 业务规则
+│   └── other.md               # 人工文档
 │
 ├── architecture/               # 架构知识
 │   ├── service-catalog.md     # 服务目录
 │   ├── repo-map.md            # 仓库地图
 │   ├── data-flow.md           # 数据流图
 │   ├── tech-stack.md          # 技术栈
+│   ├── other.md               # 人工文档
 │   └── decisions/             # 架构决策记录
 │       ├── ADR-001-microservices.md
 │       └── ADR-002-event-driven.md
@@ -369,30 +357,12 @@ forbidden_aliases:
     ├── decisions.md             # 重要决策记录（可选）
     │
     ├── upstream/                # 上级知识库（Git Subtree 引入）
-    │   ├── L1-project/          # 项目级知识库
-    │   │   ├── domain/
-    │   │   ├── architecture/
-    │   │   └── standards/
-    │   └── L0-enterprise/       # 企业级知识库
-    │       ├── constitution/    # 技术宪法（不可覆盖）
-    │       │   ├── architecture-principles.md
-    │       │   ├── security-baseline.md
-    │       │   └── compliance-requirements.md
-    │       ├── standards/       # 编码规范
-    │       │   ├── coding-standards/
-    │       │   │   └── java.md
-    │       │   ├── api-design-guide.md
-    │       │   └── testing-standards.md
-    │       ├── governance/      # 治理流程
-    │       │   ├── review-process.md
-    │       │   └── release-process.md
-    │       ├── ai-coding/       # AI 编码策略
-    │       │   └── ai-coding-policy.md
-    │       └── technology-radar/ # 技术雷达
-    │           ├── adopt.md
-    │           ├── trial.md
-    │           ├── assess.md
-    │           └── hold.md
+    │   └── L1-project/          # 项目级知识库（已包含 L0 企业级）
+    │       ├── upstream/        # L0 企业级知识库
+    │       ├── business/        # 业务领域知识
+    │       ├── architecture/    # 架构知识
+    │       ├── standards/       # 项目规范
+    │       └── aggregated/      # AI 聚合区
     │
     ├── features/                # 特性知识沉淀
     │   ├── registry.json        # Feature Registry 特性注册表
