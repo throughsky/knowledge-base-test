@@ -37,30 +37,31 @@
 ```
 enterprise-standards/
 ├── constitution/               # 技术宪法（不可覆盖）
-│   ├── architecture-principles.md  # 架构底线（分层、事务、可观测性、容错）
-│   ├── security-baseline.md        # 安全红线
-│   └── compliance-requirements.md  # 合规要求
+│   ├── architecture-principles.md  # 架构底线：分层、事务、可观测性、日志格式、
+│   │                               #           容错韧性、微服务通信、容器化部署
+│   ├── security-baseline.md        # 安全红线：认证、输入校验、数据保护、审计
+│   └── compliance-requirements.md  # 合规要求：GDPR、数据出境、审计保留
 │
-├── standards/                  # 编码规范（可细化）
+├── standards/                  # 编码规范（L0 基线，L1 可细化）
 │   ├── coding-standards/
-│   │   ├── java.md            # Java 编码规范
+│   │   ├── java.md            # Java 规范：命名、异常、并发、缓存、分布式ID
 │   │   ├── typescript.md
 │   │   └── python.md
-│   ├── api-design-guide.md
-│   └── testing-standards.md
+│   ├── api-design-guide.md    # API 设计：RESTful、响应格式、版本控制
+│   └── testing-standards.md   # 测试规范：单测覆盖率、集成测试
 │
-├── governance/                 # 治理流程
-│   ├── review-process.md      # 代码评审流程
-│   └── release-process.md     # 发布流程
+├── governance/                 # 治理流程（不可覆盖）
+│   ├── review-process.md      # 代码评审：Review 要求、安全审查、架构审批
+│   └── release-process.md     # 发布流程：环境验证、回滚方案、冒烟测试
 │
-├── ai-coding/                  # AI 编码策略
-│   └── ai-coding-policy.md    # AI 访问控制、安全约束、审计要求
+├── ai-coding/                  # AI 编码策略（不可覆盖）
+│   └── ai-coding-policy.md    # AI 约束：访问控制、代码审查、测试要求、审计
 │
 └── technology-radar/           # 技术雷达
-    ├── adopt.md               # 推荐采用
-    ├── trial.md               # 试用阶段
-    ├── assess.md              # 评估阶段
-    └── hold.md                # 暂缓使用
+    ├── adopt.md               # 推荐采用：生产验证、鼓励使用
+    ├── trial.md               # 试用阶段：小范围验证、项目可选
+    ├── assess.md              # 评估阶段：关注探索、待验证
+    └── hold.md                # 暂缓使用：禁止新项目采用、需迁移
 ```
 
 **维护方式**：架构委员会统一维护
@@ -194,6 +195,100 @@ ai_audit:  # 审计要求
   - "AI 使用情况纳入研发效能度量"
 ```
 
+#### 5.2.1.5 日志与可观测性约束
+
+**architecture-principles.md 日志格式规范**：
+
+```yaml
+# 日志格式规范（不可覆盖）
+
+log_format:
+  - "所有服务必须使用统一日志格式"
+  - "日志必须包含 traceId、spanId"
+  - "禁止日志明文打印敏感数据"
+  - "日志级别：ERROR（异常）、WARN（警告）、INFO（关键流程）、DEBUG（调试）"
+
+trace_format:
+  traceId: "32 位小写十六进制，全链路唯一标识"
+  spanId: "16 位小写十六进制，单次调用标识"
+  timestamp: "yyyy-MM-dd HH:mm:ss.SSS 毫秒级"
+
+desensitization:  # 脱敏规则
+  phone: "138****8000"
+  id_card: "310***********1234"
+  bank_card: "************1234"
+```
+
+#### 5.2.1.6 容错与韧性约束
+
+**architecture-principles.md 容错韧性规范**：
+
+```yaml
+# 容错韧性规范（不可覆盖）
+
+timeout:
+  - "外部依赖调用必须设置超时时间"
+  - "Feign 默认 connect-timeout: 3000ms, read-timeout: 5000ms"
+
+circuit_breaker:
+  - "核心链路必须有降级方案"
+  - "Feign 接口必须配置 FallbackFactory"
+  - "禁止写操作开启重试"
+
+high_availability:
+  - "禁止单点故障（数据库、缓存、MQ 等）"
+  - "Nacos 注册中心必须集群部署（≥3 节点）"
+```
+
+#### 5.2.1.7 容器化部署约束
+
+**architecture-principles.md 容器化规范**：
+
+```yaml
+# 容器化部署规范（不可覆盖）
+
+dockerfile:
+  - "必须使用多阶段构建"
+  - "必须使用非 root 用户运行"
+  - "必须配置 HEALTHCHECK"
+
+kubernetes:
+  - "必须配置 livenessProbe 和 readinessProbe"
+  - "必须设置 resources.requests 和 resources.limits"
+  - "securityContext.runAsNonRoot: true"
+  - "securityContext.allowPrivilegeEscalation: false"
+
+image_tag:
+  format: "版本号-CommitID（如 v1.0.0-7a3f2d9）"
+  prohibited:
+    - "latest"
+    - "dev"
+    - "test"
+```
+
+#### 5.2.1.8 技术雷达约束
+
+**technology-radar/hold.md 核心约束**：
+
+```yaml
+# 技术雷达 Hold 约束（不可覆盖）
+
+hold_policy:
+  - "Hold 技术新项目禁止采用"
+  - "存量项目必须制定迁移计划"
+  - "使用 Hold 技术需架构委员会例外审批"
+
+hold_examples:
+  languages:
+    - "Java 8/11 → 迁移至 Java 17"
+    - "Spring Boot 2.x → 迁移至 Spring Boot 3.x"
+  components:
+    - "Eureka/Hystrix/Ribbon → 迁移至 Nacos/Sentinel/LoadBalancer"
+    - "MySQL 5.x → 迁移至 MySQL 8.0+"
+  security:
+    - "MD5/SHA-1 → 迁移至 BCrypt/Argon2/SHA-256+"
+```
+
 ---
 
 ## 5.3 L1 项目级知识库
@@ -323,19 +418,26 @@ forbidden_aliases:
 
 ### 5.3.2 L0/L1 约束分层总结
 
-| 约束类别              | L0 企业级（不可覆盖） | L1 项目级（部分可覆盖） | 说明                       |
-| --------------------- | --------------------- | ----------------------- | -------------------------- |
-| **安全红线**    | ✅ 强制               | -                       | 密码、注入、加密等绝对底线 |
-| **合规要求**    | ✅ 强制               | -                       | GDPR、审计日志等法规要求   |
-| **架构底线**    | ✅ 强制               | -                       | 分层、事务、可观测性       |
-| **治理流程**    | ✅ 强制               | -                       | Review、发布、事故响应     |
-| **AI 安全约束** | ✅ 强制               | 细化指导                | AI 访问控制、审计要求      |
-| **技术栈版本**  | -                     | ✅ 统一                 | 项目内统一，跨项目可不同   |
-| **编码风格**    | 基线                  | ✅ 细化                 | L0 定义基线，L1 细化       |
-| **API 格式**    | -                     | ✅ 统一                 | 项目内统一响应格式         |
-| **测试标准**    | 基线                  | ✅ 细化                 | L0 定义底线，L1 定义覆盖率 |
-| **领域模型**    | -                     | ✅ 定义                 | 项目业务独有               |
-| **术语词典**    | -                     | ✅ 定义                 | AI 必须使用标准术语        |
+| 约束类别              | L0 企业级（不可覆盖） | L1 项目级（部分可覆盖） | 说明                                   |
+| --------------------- | --------------------- | ----------------------- | -------------------------------------- |
+| **安全红线**          | ✅ 强制               | -                       | 密码、注入、加密等绝对底线             |
+| **合规要求**          | ✅ 强制               | -                       | GDPR、审计日志等法规要求               |
+| **架构底线**          | ✅ 强制               | -                       | 分层、事务、数据一致性                 |
+| **日志与可观测性**    | ✅ 强制               | -                       | TraceId/SpanId 格式、脱敏规则          |
+| **容错韧性**          | ✅ 强制               | -                       | 超时、熔断、降级方案                   |
+| **微服务通信**        | ✅ 强制               | -                       | 注册中心、Feign 规范、链路传递         |
+| **容器化部署**        | ✅ 强制               | -                       | Dockerfile、K8s 安全配置、镜像标签     |
+| **治理流程**          | ✅ 强制               | -                       | Review、发布、事故响应                 |
+| **AI 安全约束**       | ✅ 强制               | 细化指导                | AI 访问控制、审计要求                  |
+| **技术雷达 Hold**     | ✅ 禁止               | -                       | Hold 技术禁止使用，需迁移              |
+| **技术雷达 Trial**    | -                     | ✅ 可选                 | 试用阶段技术，项目可选择采用           |
+| **分布式 ID**         | 基线                  | ✅ 细化                 | L0 定义雪花算法，L1 细化业务流水号前缀 |
+| **技术栈版本**        | -                     | ✅ 统一                 | 项目内统一，跨项目可不同               |
+| **编码风格**          | 基线                  | ✅ 细化                 | L0 定义基线，L1 细化                   |
+| **API 格式**          | -                     | ✅ 统一                 | 项目内统一响应格式                     |
+| **测试标准**          | 基线                  | ✅ 细化                 | L0 定义底线，L1 定义覆盖率             |
+| **领域模型**          | -                     | ✅ 定义                 | 项目业务独有                           |
+| **术语词典**          | -                     | ✅ 定义                 | AI 必须使用标准术语                    |
 
 ---
 
@@ -453,17 +555,34 @@ codewiki generate https://github.com/org/repo --output .knowledge/code-derived/
 **操作命令**：
 
 ```bash
+# ═══════════════════════════════════════════════════════════════
+# L1 项目级知识库：引入 L0 企业级知识库
+# ═══════════════════════════════════════════════════════════════
+
 # 1. 添加远程仓库（一次性）
-git remote add L1-knowledge git@github.com:org/project-knowledge.git
 git remote add L0-knowledge git@github.com:org/enterprise-knowledge.git
 
-# 2. 首次引入 subtree（使用 --squash 压缩历史）
-git subtree add --prefix=.knowledge/upstream/L1-project L1-knowledge main --squash
-git subtree add --prefix=.knowledge/upstream/L0-enterprise L0-knowledge main --squash
+# 2. 首次引入 L0 subtree
+git subtree add --prefix=upstream/L0-enterprise L0-knowledge main --squash
 
-# 3. 更新 Subtree
+# 3. 更新 L0 Subtree
+git subtree pull --prefix=upstream/L0-enterprise L0-knowledge main --squash
+
+# ═══════════════════════════════════════════════════════════════
+# L2 仓库级知识库：只引入 L1（L1 已包含 L0）
+# ═══════════════════════════════════════════════════════════════
+
+# 1. 添加远程仓库（一次性）
+git remote add L1-knowledge git@github.com:org/project-knowledge.git
+
+# 2. 首次引入 L1 subtree（L1 内部已包含 L0）
+git subtree add --prefix=.knowledge/upstream/L1-project L1-knowledge main --squash
+
+# 3. 更新 L1 Subtree
 git subtree pull --prefix=.knowledge/upstream/L1-project L1-knowledge main --squash
 ```
+
+> **注意**：L2 仓库只需引入 L1，因为 L1 的 `upstream/L0-enterprise/` 目录已包含完整的企业级知识库。
 
 ---
 
