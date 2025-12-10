@@ -610,7 +610,209 @@ public void processOrder(Long orderId) {
 
 ---
 
-## 十一、反模式检查清单
+## 十一、分布式 ID 与流水号规范 [MUST]
+
+### 11.1 分布式 ID 选型
+
+| 方案 | 长度 | 适用场景 | 优点 | 缺点 |
+|------|------|----------|------|------|
+| 雪花算法 | 19 位（Long） | 高并发、有序 | 趋势递增、性能高 | 时钟回拨问题 |
+| Leaf-Segment | 可配置 | 中等并发 | 简单可靠 | 依赖 DB |
+| Leaf-Snowflake | 19 位 | 高并发 | 解决时钟回拨 | 依赖 ZK |
+| UUID | 32/36 位 | 低并发、无序可 | 无依赖 | 无序、存储大 |
+
+### 11.2 雪花算法 ID 结构
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  1 bit  │      41 bit         │   10 bit    │      12 bit          │
+│  符号位  │     时间戳(ms)       │   机器 ID    │      序列号           │
+│    0    │  约 69 年           │  1024 节点  │   4096/ms            │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+```java
+// ✅ 正确：使用 Hutool 雪花算法
+@Configuration
+public class SnowflakeConfig {
+    @Value("${snowflake.workerId:1}")
+    private long workerId;
+
+    @Value("${snowflake.datacenterId:1}")
+    private long datacenterId;
+
+    @Bean
+    public Snowflake snowflake() {
+        return IdUtil.getSnowflake(workerId, datacenterId);
+    }
+}
+
+@Service
+public class IdGeneratorService {
+    @Autowired
+    private Snowflake snowflake;
+
+    public long nextId() {
+        return snowflake.nextId();
+    }
+
+    public String nextIdStr() {
+        return snowflake.nextIdStr();
+    }
+}
+
+// ❌ 禁止：每次 new Snowflake
+public long getId() {
+    return IdUtil.getSnowflake(1, 1).nextId();  // 禁止！
+}
+```
+
+### 11.3 业务流水号规范
+
+#### 11.3.1 流水号格式
+
+```yaml
+format: "{业务前缀}{日期}{序列号}{随机码}"
+length: 24-32 位
+```
+
+| 业务类型 | 前缀 | 格式 | 示例 |
+|----------|------|------|------|
+| 订单号 | ORD | ORD + yyyyMMdd + 10位序列 + 4位随机 | ORD202401150000000001A3F2 |
+| 支付流水号 | PAY | PAY + yyyyMMddHHmmss + 8位序列 + 4位随机 | PAY20240115143052000000019B7C |
+| 退款单号 | REF | REF + yyyyMMdd + 10位序列 + 4位随机 | REF202401150000000001D4E8 |
+| 物流单号 | LOG | LOG + yyyyMMdd + 10位序列 + 4位随机 | LOG202401150000000001F5A9 |
+| 用户编号 | USR | USR + 16位雪花ID | USR1234567890123456 |
+
+#### 11.3.2 流水号生成器
+
+```java
+@Component
+public class BizNoGenerator {
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    private static final String ORDER_NO_KEY = "seq:order:%s";
+    private static final String PAY_NO_KEY = "seq:pay:%s";
+
+    /**
+     * 生成订单号：ORD + yyyyMMdd + 10位序列 + 4位随机
+     * 示例：ORD202401150000000001A3F2
+     */
+    public String generateOrderNo() {
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String key = String.format(ORDER_NO_KEY, date);
+
+        Long seq = redisTemplate.opsForValue().increment(key);
+        if (seq == 1) {
+            redisTemplate.expire(key, 2, TimeUnit.DAYS);  // 过期时间 2 天
+        }
+
+        String seqStr = String.format("%010d", seq);  // 10 位序列号，左补零
+        String random = generateRandom(4);  // 4 位随机码
+
+        return "ORD" + date + seqStr + random;
+    }
+
+    /**
+     * 生成支付流水号：PAY + yyyyMMddHHmmss + 8位序列 + 4位随机
+     * 示例：PAY20240115143052000000019B7C
+     */
+    public String generatePayNo() {
+        String datetime = LocalDateTime.now()
+            .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String key = String.format(PAY_NO_KEY, datetime.substring(0, 8));
+
+        Long seq = redisTemplate.opsForValue().increment(key);
+        if (seq == 1) {
+            redisTemplate.expire(key, 2, TimeUnit.DAYS);
+        }
+
+        String seqStr = String.format("%08d", seq);
+        String random = generateRandom(4);
+
+        return "PAY" + datetime + seqStr + random;
+    }
+
+    /**
+     * 生成随机码（大写字母+数字）
+     */
+    private String generateRandom(int length) {
+        String chars = "0123456789ABCDEF";
+        StringBuilder sb = new StringBuilder();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+}
+```
+
+### 11.4 幂等键规范
+
+```yaml
+format: "{业务类型}:{用户ID}:{业务参数哈希}"
+expire: 30 分钟
+storage: Redis
+```
+
+```java
+@Component
+public class IdempotentKeyGenerator {
+
+    /**
+     * 生成幂等键
+     * 格式：idempotent:{bizType}:{userId}:{paramHash}
+     */
+    public String generate(String bizType, Long userId, Object params) {
+        String paramHash = DigestUtils.md5Hex(JSON.toJSONString(params));
+        return String.format("idempotent:%s:%d:%s", bizType, userId, paramHash);
+    }
+
+    /**
+     * 生成订单创建幂等键
+     */
+    public String generateOrderKey(Long userId, OrderCreateRequest request) {
+        return generate("order:create", userId, request);
+    }
+}
+
+// 使用示例
+@PostMapping("/orders")
+public Result<Long> createOrder(@RequestHeader("X-Request-Id") String requestId,
+                                 @RequestBody OrderCreateRequest request) {
+    // 优先使用客户端传入的请求 ID
+    String idempotentKey = StringUtils.isNotBlank(requestId)
+        ? "idempotent:order:" + requestId
+        : idempotentKeyGenerator.generateOrderKey(getCurrentUserId(), request);
+
+    Boolean isNew = redisTemplate.opsForValue()
+        .setIfAbsent(idempotentKey, "1", 30, TimeUnit.MINUTES);
+
+    if (Boolean.FALSE.equals(isNew)) {
+        throw new BusinessException("请勿重复提交");
+    }
+
+    return Result.success(orderService.createOrder(request));
+}
+```
+
+### 11.5 ID 长度汇总
+
+| ID 类型 | 长度 | 格式 | 存储类型 |
+|---------|------|------|----------|
+| 雪花 ID | 19 位 | 纯数字 | BIGINT |
+| TraceId | 32 位 | 小写十六进制 | VARCHAR(32) |
+| SpanId | 16 位 | 小写十六进制 | VARCHAR(16) |
+| 订单号 | 24 位 | 字母+数字 | VARCHAR(32) |
+| 支付流水号 | 26 位 | 字母+数字 | VARCHAR(32) |
+| 幂等键 | 约 64 位 | 字符串 | Redis Key |
+| UUID | 32 位 | 小写十六进制 | VARCHAR(32) |
+
+---
+
+## 十二、反模式检查清单
 
 | 序号 | 反模式 | 检测方式 |
 |------|--------|----------|
@@ -626,3 +828,6 @@ public void processOrder(Long orderId) {
 | 10 | ThreadLocal 未 remove | 检查 afterCompletion/finally |
 | 11 | 使用 SimpleDateFormat | 检查日期格式化方式 |
 | 12 | 缓存无过期时间 | 检查 set 方法是否有 expire 参数 |
+| 13 | 每次 new Snowflake | 检查雪花算法使用方式 |
+| 14 | 流水号无随机码 | 检查流水号生成逻辑 |
+| 15 | 幂等键无过期时间 | 检查 Redis setIfAbsent |

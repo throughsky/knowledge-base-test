@@ -178,10 +178,135 @@ public class FeignTraceInterceptor implements RequestInterceptor {
         }
     }
 }
+```
 
-// ✅ 正确：日志格式包含 traceId
-// logback-spring.xml
-<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - traceId:%X{traceId} - %msg%n</pattern>
+### 3.4 日志格式规范
+
+```yaml
+rules:
+  - "所有服务必须使用统一日志格式"
+  - "日志必须包含 traceId、spanId"
+  - "禁止日志明文打印敏感数据"
+  - "日志级别：ERROR（异常）、WARN（警告）、INFO（关键流程）、DEBUG（调试）"
+```
+
+#### 3.4.1 Logback 配置
+
+```xml
+<!-- logback-spring.xml -->
+<configuration>
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [traceId:%X{traceId}] [spanId:%X{spanId}] - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/app.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+</configuration>
+```
+
+#### 3.4.2 日志字段规范
+
+| 字段 | 长度 | 格式 | 说明 |
+|------|------|------|------|
+| traceId | 32 位 | 小写十六进制 | 全链路唯一标识，跨服务传递 |
+| spanId | 16 位 | 小写十六进制 | 单次调用标识 |
+| timestamp | - | `yyyy-MM-dd HH:mm:ss.SSS` | 毫秒级时间戳 |
+| level | - | `ERROR/WARN/INFO/DEBUG` | 日志级别 |
+| thread | - | 线程名 | 当前线程 |
+| logger | 36 位截断 | 类全限定名 | 日志来源 |
+
+#### 3.4.3 TraceId 生成与传递
+
+```java
+// ✅ 正确：网关层生成 TraceId
+@Component
+public class TraceFilter implements GlobalFilter, Ordered {
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        String traceId = exchange.getRequest().getHeaders().getFirst("X-Trace-Id");
+        if (StringUtils.isBlank(traceId)) {
+            traceId = generateTraceId();  // 32 位小写十六进制
+        }
+
+        ServerHttpRequest request = exchange.getRequest().mutate()
+            .header("X-Trace-Id", traceId)
+            .build();
+
+        return chain.filter(exchange.mutate().request(request).build());
+    }
+
+    private String generateTraceId() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+}
+
+// ✅ 正确：服务层接收并放入 MDC
+@Component
+public class TraceInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        String traceId = request.getHeader("X-Trace-Id");
+        String spanId = generateSpanId();  // 16 位小写十六进制
+
+        MDC.put("traceId", traceId);
+        MDC.put("spanId", spanId);
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
+                                 Object handler, Exception ex) {
+        MDC.clear();  // 必须清理
+    }
+}
+```
+
+#### 3.4.4 日志级别使用规范
+
+```java
+// ERROR：系统异常、业务异常、需要告警
+log.error("创建订单失败, userId={}, request={}", userId, JSON.toJSONString(request), e);
+
+// WARN：可恢复异常、降级、重试
+log.warn("调用支付服务超时，触发重试, orderId={}, retryCount={}", orderId, retryCount);
+
+// INFO：关键业务节点、入口出口
+log.info("订单创建成功, orderId={}, userId={}, amount={}", orderId, userId, amount);
+
+// DEBUG：调试信息（生产环境默认关闭）
+log.debug("查询参数, query={}", JSON.toJSONString(query));
+```
+
+#### 3.4.5 敏感数据脱敏
+
+```java
+// ❌ 禁止：明文打印敏感数据
+log.info("用户登录, phone={}, password={}", phone, password);
+
+// ✅ 正确：脱敏后打印
+log.info("用户登录, phone={}", DesensitizeUtils.maskPhone(phone));
+
+// 脱敏规则
+// 手机号：138****8000
+// 身份证：310***********1234
+// 银行卡：************1234
 ```
 
 ---
