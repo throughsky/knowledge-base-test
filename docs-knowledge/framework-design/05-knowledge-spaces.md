@@ -36,18 +36,26 @@
 
 ```
 enterprise-standards/
-├── constitution/               # 技术宪法
-│   ├── architecture-principles.md
-│   ├── security-baseline.md
-│   └── compliance-requirements.md
-│   └── constitution-template.md
-├── standards/                  # 编码规范
+├── constitution/               # 技术宪法（不可覆盖）
+│   ├── architecture-principles.md  # 架构底线（分层、事务、可观测性、容错）
+│   ├── security-baseline.md        # 安全红线
+│   └── compliance-requirements.md  # 合规要求
+│
+├── standards/                  # 编码规范（可细化）
 │   ├── coding-standards/
-│   │   ├── java.md
+│   │   ├── java.md            # Java 编码规范
 │   │   ├── typescript.md
 │   │   └── python.md
 │   ├── api-design-guide.md
 │   └── testing-standards.md
+│
+├── governance/                 # 治理流程
+│   ├── review-process.md      # 代码评审流程
+│   └── release-process.md     # 发布流程
+│
+├── ai-coding/                  # AI 编码策略
+│   └── ai-coding-policy.md    # AI 访问控制、安全约束、审计要求
+│
 └── technology-radar/           # 技术雷达
     ├── adopt.md               # 推荐采用
     ├── trial.md               # 试用阶段
@@ -200,6 +208,28 @@ project-knowledge/
 ├── BUSINESS.md                 # 业务知识入口
 ├── ARCHITECTURE.md             # 架构知识入口
 │
+├── upstream/                   # 上级知识库（Git Subtree 引入）
+│   └── L0-enterprise/         # 企业级知识库
+│       ├── constitution/      # 技术宪法（不可覆盖）
+│       │   ├── architecture-principles.md
+│       │   ├── security-baseline.md
+│       │   └── compliance-requirements.md
+│       ├── standards/         # 编码规范（可细化）
+│       │   ├── coding-standards/
+│       │   │   └── java.md
+│       │   ├── api-design-guide.md
+│       │   └── testing-standards.md
+│       ├── governance/        # 治理流程
+│       │   ├── review-process.md
+│       │   └── release-process.md
+│       ├── ai-coding/         # AI 编码策略
+│       │   └── ai-coding-policy.md
+│       └── technology-radar/  # 技术雷达
+│           ├── adopt.md
+│           ├── trial.md
+│           ├── assess.md
+│           └── hold.md
+│
 ├── business/                   # 业务领域知识
 │   ├── domain-model.md        # 领域模型
 │   ├── glossary.md            # 术语词典
@@ -217,10 +247,10 @@ project-knowledge/
 │       ├── ADR-001-microservices.md
 │       └── ADR-002-event-driven.md
 │
-├── standards/                  # 项目规范（继承L0）
-│   ├── coding.md
-│   ├── api.md
-│   └── testing.md
+├── standards/                  # 项目规范（继承并细化 L0）
+│   ├── coding.md              # 项目编码规范（细化 L0）
+│   ├── api.md                 # 项目 API 规范
+│   └── testing.md             # 项目测试规范
 │
 └── aggregated/                 # AI聚合区（自动生成）
     ├── last-updated.json
@@ -344,9 +374,25 @@ forbidden_aliases:
     │   │   ├── architecture/
     │   │   └── standards/
     │   └── L0-enterprise/       # 企业级知识库
-    │       ├── governance/
-    │       ├── security/
-    │       └── standards/
+    │       ├── constitution/    # 技术宪法（不可覆盖）
+    │       │   ├── architecture-principles.md
+    │       │   ├── security-baseline.md
+    │       │   └── compliance-requirements.md
+    │       ├── standards/       # 编码规范
+    │       │   ├── coding-standards/
+    │       │   │   └── java.md
+    │       │   ├── api-design-guide.md
+    │       │   └── testing-standards.md
+    │       ├── governance/      # 治理流程
+    │       │   ├── review-process.md
+    │       │   └── release-process.md
+    │       ├── ai-coding/       # AI 编码策略
+    │       │   └── ai-coding-policy.md
+    │       └── technology-radar/ # 技术雷达
+    │           ├── adopt.md
+    │           ├── trial.md
+    │           ├── assess.md
+    │           └── hold.md
     │
     ├── features/                # 特性知识沉淀
     │   ├── registry.json        # Feature Registry 特性注册表
