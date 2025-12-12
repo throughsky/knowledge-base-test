@@ -61,6 +61,9 @@ during_generation:
   - 敏感数据是否加密/脱敏
   - 是否有适当的日志记录
   - 资源是否正确释放
+  - 是否使用统一请求/响应结构（CommonRequest/CommonResponse）
+  - 错误码是否符合 13 位格式规范
+  - 继承体系是否避免使用 @Accessors(chain=true)
 ```
 
 ### 2.3 生成后检查
@@ -72,6 +75,7 @@ post_generation:
   - 是否需要数据库脚本
   - 是否符合代码评审标准
   - 是否通过静态代码分析
+  - 测试数据是否独立（避免固定 ID，使用 @BeforeEach/@AfterEach）
 ```
 
 ---
@@ -168,6 +172,44 @@ redisTemplate.opsForValue().set(key, value);
 
 // ✅ 正确：设置缓存过期时间
 redisTemplate.opsForValue().set(key, value, 30, TimeUnit.MINUTES);
+```
+
+### 3.7 链式调用相关
+
+```java
+// ❌ 禁止：继承体系中使用 @Accessors(chain = true)
+@Data
+@Accessors(chain = true)
+public class BaseRequest { private String traceId; }
+
+@Data
+@Accessors(chain = true)
+public class OrderRequest extends BaseRequest { private Long orderId; }
+
+// 问题：setTraceId() 返回 BaseRequest，无法继续调用子类方法
+
+// ✅ 正确：使用 @Builder 替代
+@Builder
+public class OrderRequest {
+    private String traceId;
+    private Long orderId;
+}
+```
+
+### 3.8 错误码相关
+
+```java
+// ❌ 禁止：错误码格式不规范
+throw new BusinessException("001", "用户不存在");
+
+// ✅ 正确：使用 13 位标准格式 [系统编码4位][类型1位][序列号8位]
+// 类型：B=业务错误, C=客户端错误, T=系统错误
+public enum ErrorCodeEnum {
+    SUCCESS("0", "success"),
+    USER_NOT_FOUND("1001B00000001", "用户不存在"),
+    PARAM_ERROR("1001C00000001", "参数校验失败"),
+    SYSTEM_ERROR("1001T00000001", "系统内部错误");
+}
 ```
 
 ---
@@ -303,3 +345,6 @@ feedback:
 | 8 | 日志打印敏感数据 | 检查日志输出内容 |
 | 9 | 未验证输入参数 | 检查参数校验注解 |
 | 10 | 资源未关闭 | 检查 try-with-resources |
+| 11 | 继承体系使用 @Accessors(chain=true) | 检查 extends + 链式注解 |
+| 12 | 测试使用固定 ID 数据 | 检查测试数据生成方式 |
+| 13 | 错误码格式不符合规范 | 检查是否为 13 位标准格式 |

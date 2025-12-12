@@ -130,9 +130,49 @@ void testCreateOrder() {
 
 ---
 
-## 三、集成测试规范 [MUST]
+## 三、测试幂等性规范 [MUST]
 
-### 3.1 Testcontainers 使用
+### 3.1 核心原则
+
+```yaml
+idempotency_rules:
+  - 每个测试用例必须独立执行
+  - 测试执行顺序不影响结果
+  - 重复执行测试必须得到相同结果
+```
+
+### 3.2 数据管理
+
+```java
+@SpringBootTest
+class OrderServiceTest {
+    @BeforeEach
+    void setUp() {
+        orderMapper.delete(new QueryWrapper<>());  // 清理数据
+        // 插入测试基础数据
+    }
+
+    @AfterEach
+    void tearDown() {
+        orderMapper.delete(new QueryWrapper<>());  // 清理数据
+    }
+}
+```
+
+### 3.3 禁止项
+
+```yaml
+prohibited:
+  - 使用固定 ID 作为测试数据
+  - 依赖测试执行顺序
+  - 不清理测试产生的数据
+```
+
+---
+
+## 四、集成测试规范 [MUST]
+
+### 4.1 Testcontainers 使用
 
 ```java
 @SpringBootTest
@@ -199,9 +239,9 @@ rules:
 
 ---
 
-## 四、接口测试规范 [MUST]
+## 五、接口测试规范 [MUST]
 
-### 4.1 RestAssured 测试
+### 5.1 RestAssured 测试
 
 ```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -298,9 +338,9 @@ scenarios:
 
 ---
 
-## 五、性能测试规范 [SHOULD]
+## 六、性能测试规范 [SHOULD]
 
-### 5.1 测试指标
+### 6.1 测试指标
 
 ```yaml
 metrics:
@@ -346,9 +386,9 @@ http_request:
 
 ---
 
-## 六、CI/CD 集成规范 [MUST]
+## 七、CI/CD 集成规范 [MUST]
 
-### 6.1 流水线配置
+### 7.1 流水线配置
 
 ```yaml
 name: Test Pipeline
@@ -435,7 +475,7 @@ quality_gates:
 
 ---
 
-## 七、反模式检查清单
+## 八、反模式检查清单
 
 | 序号 | 反模式 | 检测方式 |
 |------|--------|----------|
@@ -449,3 +489,5 @@ quality_gates:
 | 8 | 未集成 CI/CD | 检查流水线配置 |
 | 9 | 测试用例未随代码更新 | 检查测试代码提交记录 |
 | 10 | 吞异常不断言 | 检查 catch 块处理 |
+| 11 | 使用固定 ID 测试数据 | 检查测试数据生成方式 |
+| 12 | 依赖测试执行顺序 | 检查 @Order 注解使用 |

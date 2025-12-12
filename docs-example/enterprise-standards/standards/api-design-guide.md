@@ -389,6 +389,80 @@ components:
 
 ---
 
+## 9. 统一请求/响应结构 (Unified Request/Response)
+
+### 请求结构
+
+```java
+// 基础请求
+@Data
+public class CommonRequest {
+    private String traceId;
+}
+
+// 分页请求
+@Data
+public class CommonPageRequest extends CommonRequest {
+    @Min(1) private Integer pageNum = 1;
+    @Min(1) @Max(100) private Integer pageSize = 10;
+}
+```
+
+### 响应结构
+
+```java
+@Data
+public class CommonResponse<T> {
+    private String code;
+    private String message;
+    private T data;
+
+    public boolean isSuccess() { return "0".equals(code); }
+
+    public static <T> CommonResponse<T> success(T data) {
+        CommonResponse<T> response = new CommonResponse<>();
+        response.setCode("0");
+        response.setMessage("success");
+        response.setData(data);
+        return response;
+    }
+}
+```
+
+---
+
+## 10. 错误码规范 (Error Code)
+
+### 错误码格式
+
+```
+格式：[系统编码4位][类型1位][序列号8位]
+类型：B=业务错误, C=客户端错误, T=系统错误
+成功码："0"
+```
+
+| 错误码示例 | 类型 | 含义 |
+|-----------|------|------|
+| `0` | 成功 | 操作成功 |
+| `1001B00000001` | 业务 | 用户名已存在 |
+| `1001C00000001` | 客户端 | 参数校验失败 |
+| `1001T00000001` | 系统 | 系统内部错误 |
+
+---
+
+## 11. HTTP方法简化策略 (Optional)
+
+对于内部系统，可采用 GET/POST 简化策略：
+
+| 操作 | 标准RESTful | 简化策略 |
+|------|------------|----------|
+| 查询 | GET | GET |
+| 创建/更新/删除 | POST/PUT/DELETE | POST |
+
+**适用场景**：内部系统、快速开发、防火墙限制
+
+---
+
 ## API 设计检查清单
 
 - [ ] 资源命名使用复数名词
@@ -400,6 +474,8 @@ components:
 - [ ] 认证机制已实现
 - [ ] OpenAPI规范已编写
 - [ ] 限流策略已配置
+- [ ] 统一请求/响应结构已实现
+- [ ] 错误码格式已规范
 
 ---
 

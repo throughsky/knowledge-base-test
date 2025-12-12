@@ -451,13 +451,456 @@ public class UserVO {
 }
 ```
 
-## 八、反模式检查清单
+## 八、统一请求/响应结构模板 [MUST]
+
+> 所有项目必须使用以下标准化的请求/响应结构，确保接口风格一致。
+
+### 8.1 通用请求基类 CommonRequest
+
+```java
+package com.example.vo.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+/**
+ * 通用请求基类
+ * 所有请求对象必须继承此类
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@Schema(description = "通用请求基类")
+public class CommonRequest {
+
+    @Schema(description = "请求追踪ID（可选）",
+            example = "createUser_20250127150000_123456")
+    private String traceId;
+}
+```
+
+### 8.2 通用分页请求基类 CommonPageRequest
+
+```java
+package com.example.vo.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+/**
+ * 通用分页请求基类
+ * 所有分页查询请求必须继承此类
+ */
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+@Schema(description = "通用分页请求基类")
+public abstract class CommonPageRequest extends CommonRequest {
+
+    @Schema(description = "页码", example = "1", minimum = "1")
+    @NotNull(message = "页码不能为空")
+    @Min(value = 1, message = "页码最小为1")
+    private Integer pageNumber = 1;
+
+    @Schema(description = "每页数量", example = "10", minimum = "1", maximum = "100")
+    @NotNull(message = "每页数量不能为空")
+    @Min(value = 1, message = "每页数量最小为1")
+    @Max(value = 100, message = "每页数量不能超过100")
+    private Integer pageSize = 10;
+
+    @Schema(description = "排序字段", example = "createTime")
+    private String sortBy;
+
+    @Schema(description = "排序方向", example = "desc", allowableValues = {"asc", "desc"})
+    private String sortDirection = "desc";
+}
+```
+
+### 8.3 通用响应基类 CommonResponse
+
+```java
+package com.example.vo.response;
+
+import com.example.enums.ErrorCodeEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+/**
+ * 通用响应基类
+ * 所有API必须返回此类型
+ */
+@Data
+@NoArgsConstructor
+@Accessors(chain = true)
+@Schema(description = "通用响应基类")
+public class CommonResponse<T> {
+
+    @Schema(description = "响应状态码", example = "0")
+    private String code;
+
+    @Schema(description = "响应消息", example = "success")
+    private String message;
+
+    @Schema(description = "响应数据")
+    private T data;
+
+    public boolean isSuccess() {
+        return "0".equals(code);
+    }
+
+    public static <T> CommonResponse<T> success() {
+        return new CommonResponse<T>().setCode("0").setMessage("success");
+    }
+
+    public static <T> CommonResponse<T> success(T data) {
+        return new CommonResponse<T>().setCode("0").setMessage("success").setData(data);
+    }
+
+    public static <T> CommonResponse<T> error(ErrorCodeEnum errorCode) {
+        return new CommonResponse<T>().setCode(errorCode.getCode()).setMessage(errorCode.getMessage());
+    }
+
+    public static <T> CommonResponse<T> error(String code, String message) {
+        return new CommonResponse<T>().setCode(code).setMessage(message);
+    }
+}
+```
+
+### 8.4 分页数据封装类 PageData
+
+```java
+package com.example.vo.response;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+/**
+ * 分页数据封装类
+ * 作为 CommonResponse<PageData<T>> 的 data 字段类型
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Schema(description = "分页数据封装类")
+public class PageData<T> {
+
+    @Schema(description = "总条数", example = "100")
+    private Long total;
+
+    @Schema(description = "当前页码", example = "1")
+    private Integer pageNumber;
+
+    @Schema(description = "每页数量", example = "10")
+    private Integer pageSize;
+
+    @Schema(description = "数据列表")
+    private List<T> list;
+
+    /**
+     * 计算总页数
+     */
+    public Integer getTotalPages() {
+        if (total == null || pageSize == null || pageSize == 0) {
+            return 0;
+        }
+        return (int) Math.ceil((double) total / pageSize);
+    }
+}
+```
+
+### 8.5 使用示例
+
+```java
+// 普通请求
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Schema(description = "创建用户请求")
+public class CreateUserRequest extends CommonRequest {
+
+    @NotBlank(message = "用户名不能为空")
+    @Schema(description = "用户名", example = "john_doe")
+    private String username;
+
+    @NotBlank(message = "密码不能为空")
+    @Schema(description = "密码")
+    private String password;
+}
+
+// 分页查询请求
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Schema(description = "搜索用户请求")
+public class SearchUserRequest extends CommonPageRequest {
+
+    @Schema(description = "关键词", example = "john")
+    private String keyword;
+
+    @Schema(description = "角色", example = "admin")
+    private String role;
+}
+
+// Controller使用
+@PostMapping("/search")
+public CommonResponse<PageData<UserResponse>> searchUsers(
+        @Valid @RequestBody SearchUserRequest request) {
+    return userService.searchUsers(request);
+}
+```
+
+## 九、错误码格式规范 [MUST]
+
+> 统一错误码格式，便于问题定位和系统间通信。
+
+### 9.1 错误码格式定义
+
+| 位置 | 长度 | 含义          | 示例     |
+| ---- | ---- | ------------- | -------- |
+| 1-4  | 4位  | 系统/模块代码 | 1001     |
+| 5    | 1位  | 错误类型      | B/C/T    |
+| 6-13 | 8位  | 错误序号      | 00000001 |
+
+**错误类型说明**:
+- **B** (Business): 业务错误，如用户名已存在、余额不足
+- **C** (Client): 客户端错误，如参数校验失败、未认证
+- **T** (Technical): 技术错误，如数据库异常、服务超时
+
+**特殊码值**:
+- `"0"`: 成功码，固定为字符串 "0"
+
+### 9.2 错误码枚举模板
+
+```java
+package com.example.enums;
+
+import lombok.Getter;
+
+/**
+ * 错误码枚举
+ *
+ * 格式：[系统代码4位][类型1位][序号8位]
+ * - B: 业务错误 (Business)
+ * - C: 客户端错误 (Client)
+ * - T: 技术错误 (Technical)
+ */
+@Getter
+public enum ErrorCodeEnum {
+
+    // ==================== 成功码 ====================
+    SUCCESS("0", "success"),
+
+    // ==================== 业务错误码 (1001B00000001-1001B00000999) ====================
+    USERNAME_EXISTS("1001B00000001", "用户名已存在"),
+    USER_NOT_FOUND("1001B00000002", "用户不存在"),
+    PASSWORD_INCORRECT("1001B00000003", "密码错误"),
+    ACCOUNT_DISABLED("1001B00000004", "账户已禁用"),
+    INSUFFICIENT_BALANCE("1001B00000005", "余额不足"),
+
+    // ==================== 客户端错误码 (1001C00000001-1001C00000999) ====================
+    VALIDATION_ERROR("1001C00000001", "参数校验失败"),
+    UNAUTHORIZED("1001C00000002", "未认证"),
+    FORBIDDEN("1001C00000003", "权限不足"),
+    RESOURCE_NOT_FOUND("1001C00000004", "资源不存在"),
+    METHOD_NOT_ALLOWED("1001C00000005", "请求方法不允许"),
+
+    // ==================== 技术错误码 (1001T00000001-1001T00000999) ====================
+    INTERNAL_ERROR("1001T00000001", "系统内部错误"),
+    DATABASE_ERROR("1001T00000002", "数据库操作失败"),
+    CACHE_ERROR("1001T00000003", "缓存操作失败"),
+    REMOTE_SERVICE_ERROR("1001T00000004", "远程服务调用失败"),
+    TIMEOUT_ERROR("1001T00000005", "请求超时");
+
+    private final String code;
+    private final String message;
+
+    ErrorCodeEnum(String code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    /**
+     * 根据错误码查找枚举值
+     */
+    public static ErrorCodeEnum fromCode(String code) {
+        for (ErrorCodeEnum errorCode : values()) {
+            if (errorCode.code.equals(code)) {
+                return errorCode;
+            }
+        }
+        throw new IllegalArgumentException("Invalid error code: " + code);
+    }
+}
+```
+
+### 9.3 多系统错误码分配
+
+| 系统代码 | 系统名称 | 错误码范围                  |
+| -------- | -------- | --------------------------- |
+| 1001     | 用户中心 | 1001B/C/T 00000001-00000999 |
+| 1002     | 订单系统 | 1002B/C/T 00000001-00000999 |
+| 1003     | 支付系统 | 1003B/C/T 00000001-00000999 |
+| 1004     | 商品系统 | 1004B/C/T 00000001-00000999 |
+
+### 9.4 业务异常类模板
+
+```java
+package com.example.exception;
+
+import com.example.enums.ErrorCodeEnum;
+import lombok.Getter;
+
+/**
+ * 业务异常类
+ */
+@Getter
+public class BusinessException extends RuntimeException {
+
+    private final String code;
+    private final String msg;
+
+    public BusinessException(ErrorCodeEnum errorCode) {
+        super(errorCode.getMessage());
+        this.code = errorCode.getCode();
+        this.msg = errorCode.getMessage();
+    }
+
+    public BusinessException(String code, String msg) {
+        super(msg);
+        this.code = code;
+        this.msg = msg;
+    }
+
+    public BusinessException(ErrorCodeEnum errorCode, Throwable cause) {
+        super(errorCode.getMessage(), cause);
+        this.code = errorCode.getCode();
+        this.msg = errorCode.getMessage();
+    }
+}
+```
+
+## 十、HTTP方法简化策略 [SHOULD]
+
+> 在特定场景下，可采用简化的HTTP方法策略（仅GET/POST），便于防火墙配置和统一处理。
+
+### 10.1 简化HTTP方法映射
+
+| 操作类型              | 推荐方法 | URL示例                      |
+| --------------------- | -------- | ---------------------------- |
+| 查询单条数据          | GET      | `/api/v1/users/{id}`         |
+| 查询列表（简单）      | GET      | `/api/v1/users?role=admin`   |
+| 查询列表（复杂/分页） | POST     | `/api/v1/users/search`       |
+| 创建资源              | POST     | `/api/v1/users/create`       |
+| 更新资源              | POST     | `/api/v1/users/update`       |
+| 删除资源              | POST     | `/api/v1/users/delete/{id}`  |
+| 批量操作              | POST     | `/api/v1/users/batch-delete` |
+
+### 10.2 适用场景
+
+| 场景 | 建议 |
+|------|------|
+| 对外公开API | 使用标准RESTful（GET/POST/PUT/DELETE） |
+| 企业内部系统 | 可使用简化策略（GET/POST） |
+| 防火墙限制环境 | 推荐简化策略 |
+| 微服务间调用 | 使用标准RESTful |
+
+### 10.3 简化策略的利弊
+
+**采纳理由**:
+- 简化防火墙配置（部分企业防火墙默认阻止PUT/DELETE）
+- 统一请求体格式（POST 统一使用 JSON Body）
+- 便于日志记录（POST 请求参数在 Body 中，更安全）
+- 降低 CSRF 风险
+
+**不采纳理由**:
+- 违反 RESTful 规范
+- POST 请求默认不可缓存
+- 幂等性语义丢失（PUT 天然幂等）
+- 部分 API 测试工具依赖 HTTP 动词语义
+
+### 10.4 简化策略下的Controller示例
+
+```java
+@RestController
+@RequestMapping("/api/v1/users")
+@Tag(name = "用户管理", description = "用户管理相关接口")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    // GET - 查询单条
+    @GetMapping("/{id}")
+    @Operation(summary = "获取用户详情")
+    public CommonResponse<UserResponse> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
+    // POST - 复杂查询/分页
+    @PostMapping("/search")
+    @Operation(summary = "分页搜索用户")
+    public CommonResponse<PageData<UserResponse>> searchUsers(
+            @Valid @RequestBody SearchUserRequest request) {
+        return userService.searchUsers(request);
+    }
+
+    // POST - 创建
+    @PostMapping("/create")
+    @Operation(summary = "创建用户")
+    public CommonResponse<UserResponse> createUser(
+            @Valid @RequestBody CreateUserRequest request) {
+        return userService.createUser(request);
+    }
+
+    // POST - 更新
+    @PostMapping("/update")
+    @Operation(summary = "更新用户")
+    public CommonResponse<UserResponse> updateUser(
+            @Valid @RequestBody UpdateUserRequest request) {
+        return userService.updateUser(request);
+    }
+
+    // POST - 删除
+    @PostMapping("/delete/{id}")
+    @Operation(summary = "删除用户")
+    public CommonResponse<Void> deleteUser(@PathVariable Long id) {
+        return userService.deleteUserById(id);
+    }
+
+    // POST - 批量删除
+    @PostMapping("/batch-delete")
+    @Operation(summary = "批量删除用户")
+    public CommonResponse<Void> batchDeleteUsers(
+            @RequestBody List<Long> ids) {
+        return userService.batchDeleteUsers(ids);
+    }
+}
+```
+
+## 十一、反模式检查清单
 
 | 序号 | 反模式 | 检测方式 |
 |------|--------|----------|
 | 1 | URL包含动词 | 检查RequestMapping路径 |
 | 2 | GET请求带RequestBody | 检查GET方法参数 |
-| 3 | 无统一响应格式 | 检查返回类型是否为Result |
+| 3 | 无统一响应格式 | 检查返回类型是否为CommonResponse |
 | 4 | 无参数校验注解 | 检查@Valid/@Validated |
 | 5 | 无全局异常处理 | 检查@RestControllerAdvice |
 | 6 | 无接口文档注解 | 检查@Operation/@Tag |
@@ -465,3 +908,5 @@ public class UserVO {
 | 8 | 响应包含敏感数据 | 检查password/secret等字段 |
 | 9 | POST接口无幂等设计 | 检查创建类接口 |
 | 10 | 无分页参数 | 检查列表查询接口 |
+| 11 | 请求类未继承基类 | 检查是否继承CommonRequest |
+| 12 | 错误码格式不规范 | 检查是否符合13位格式 |

@@ -812,7 +812,49 @@ public Result<Long> createOrder(@RequestHeader("X-Request-Id") String requestId,
 
 ---
 
-## 十二、反模式检查清单
+## 十二、链式调用规范 [MUST]
+
+### 12.1 限制规则
+
+```yaml
+rules:
+  - 同一类内的链式调用允许（如 Builder 模式）
+  - 继承体系中禁止链式调用（类型转换问题）
+```
+
+### 12.2 问题示例
+
+```java
+// ❌ 错误：继承体系中的链式调用
+@Data
+@Accessors(chain = true)
+public class BaseRequest { private String traceId; }
+
+@Data
+@Accessors(chain = true)
+public class OrderRequest extends BaseRequest { private Long orderId; }
+
+// 问题：setTraceId() 返回 BaseRequest，无法继续调用 setOrderId()
+OrderRequest request = new OrderRequest()
+    .setTraceId("123")      // 返回 BaseRequest
+    .setOrderId(1001L);     // 编译错误
+```
+
+### 12.3 推荐方案
+
+```java
+// ✅ 方案1：避免继承 + 链式调用
+// ✅ 方案2：使用 @Builder 替代 @Accessors(chain=true)
+@Builder
+public class OrderRequest {
+    private String traceId;
+    private Long orderId;
+}
+```
+
+---
+
+## 十三、反模式检查清单
 
 | 序号 | 反模式 | 检测方式 |
 |------|--------|----------|
@@ -831,3 +873,4 @@ public Result<Long> createOrder(@RequestHeader("X-Request-Id") String requestId,
 | 13 | 每次 new Snowflake | 检查雪花算法使用方式 |
 | 14 | 流水号无随机码 | 检查流水号生成逻辑 |
 | 15 | 幂等键无过期时间 | 检查 Redis setIfAbsent |
+| 16 | 继承体系中使用 @Accessors(chain=true) | 检查 extends + 链式注解 |

@@ -124,9 +124,159 @@ void testCreateOrder() {
 }
 ```
 
-## 三、集成测试规范 [MUST]
+## 三、测试幂等性规范 [MUST]
 
-### 3.1 Testcontainers使用
+### 3.1 核心原则
+
+```yaml
+idempotency_rules:
+  - 每个测试用例必须独立执行
+  - 测试执行顺序不影响结果
+  - 重复执行测试必须得到相同结果
+  - 禁止测试用例之间共享可变状态
+```
+
+### 3.2 数据管理策略
+
+```java
+@SpringBootTest
+class OrderServiceTest {
+
+    @Autowired
+    private OrderMapper orderMapper;
+
+    @Autowired
+    private DataSource dataSource;
+
+    /**
+     * ✅ 正确：每个测试前初始化数据
+     * 使用@BeforeEach确保每个测试用例有干净的初始状态
+     */
+    @BeforeEach
+    void setUp() {
+        // 清理并初始化测试数据
+        orderMapper.delete(new QueryWrapper<>());
+
+        // 插入测试基础数据
+        Order testOrder = new Order();
+        testOrder.setUserId(1001L);
+        testOrder.setStatus(OrderStatusEnum.CREATED.getCode());
+        testOrder.setAmount(new BigDecimal("100.00"));
+        orderMapper.insert(testOrder);
+    }
+
+    /**
+     * ✅ 正确：每个测试后清理数据
+     * 使用@AfterEach确保不影响其他测试
+     */
+    @AfterEach
+    void tearDown() {
+        // 清理测试产生的数据
+        orderMapper.delete(new QueryWrapper<>());
+    }
+
+    @Test
+    void createOrder_ValidParams_ReturnOrderId() {
+        // 测试逻辑...
+        // 使用动态生成的数据，而非固定ID
+        Long orderId = orderService.createOrder(validRequest);
+        assertNotNull(orderId);
+    }
+}
+```
+
+### 3.3 禁止项
+
+```yaml
+prohibited:
+  - 使用固定ID作为测试数据（可能与其他测试冲突）
+  - 依赖测试执行顺序
+  - 在测试中修改共享静态变量
+  - 不清理测试产生的数据
+```
+
+```java
+// ❌ 错误：使用固定ID
+@Test
+void testGetOrder() {
+    Long orderId = 1L;  // 固定ID，可能与其他测试冲突
+    Order order = orderService.getById(orderId);
+    assertNotNull(order);
+}
+
+// ❌ 错误：依赖其他测试创建的数据
+@Test
+@Order(2)  // 依赖@Order(1)创建的数据
+void testUpdateOrder() {
+    // 假设testCreateOrder已经创建了数据
+    orderService.updateStatus(1L, OrderStatusEnum.PAID);
+}
+
+// ✅ 正确：每个测试独立准备数据
+@Test
+void testGetOrder() {
+    // 测试内部创建数据
+    Order order = createTestOrder();
+    Long orderId = orderMapper.insert(order);
+
+    // 执行测试
+    Order result = orderService.getById(orderId);
+    assertNotNull(result);
+    assertEquals(order.getAmount(), result.getAmount());
+}
+```
+
+### 3.4 数据隔离策略
+
+```java
+/**
+ * 使用@Transactional实现测试数据自动回滚
+ */
+@SpringBootTest
+@Transactional
+class OrderServiceTransactionalTest {
+
+    @Test
+    void createOrder_WithTransaction_AutoRollback() {
+        // 测试完成后自动回滚，无需手动清理
+        Long orderId = orderService.createOrder(validRequest);
+        assertNotNull(orderId);
+        // 事务结束后自动回滚
+    }
+}
+
+/**
+ * 使用唯一前缀隔离测试数据
+ */
+class OrderServiceIsolationTest {
+
+    private String testPrefix;
+
+    @BeforeEach
+    void setUp() {
+        // 每个测试使用唯一前缀
+        testPrefix = "TEST_" + UUID.randomUUID().toString().substring(0, 8) + "_";
+    }
+
+    @AfterEach
+    void tearDown() {
+        // 只清理本测试的数据
+        orderMapper.delete(new QueryWrapper<Order>()
+            .likeRight("order_no", testPrefix));
+    }
+
+    @Test
+    void createOrder_WithPrefix_Isolated() {
+        OrderCreateRequest request = new OrderCreateRequest();
+        request.setOrderNo(testPrefix + "ORDER001");
+        // ...
+    }
+}
+```
+
+## 四、集成测试规范 [MUST]
+
+### 4.1 Testcontainers使用
 
 ```java
 @SpringBootTest
@@ -191,7 +341,7 @@ rules:
   - 禁止测试间共享数据
 ```
 
-## 四、契约测试规范 [SHOULD]
+## 五、契约测试规范 [SHOULD]
 
 ### 4.1 提供者端契约定义
 
@@ -246,7 +396,7 @@ class PayServiceContractTest {
 }
 ```
 
-## 五、接口测试规范 [MUST]
+## 六、接口测试规范 [MUST]
 
 ### 5.1 RestAssured测试
 
@@ -344,7 +494,7 @@ scenarios:
   - XSS防护
 ```
 
-## 六、性能测试规范 [SHOULD]
+## 七、性能测试规范 [SHOULD]
 
 ### 6.1 测试指标
 
@@ -390,7 +540,7 @@ http_request:
     }
 ```
 
-## 七、CI/CD集成规范 [MUST]
+## 八、CI/CD集成规范 [MUST]
 
 ### 7.1 流水线配置
 
@@ -495,7 +645,7 @@ quality_gates:
   - no_high_vulnerabilities
 ```
 
-## 八、反模式检查清单
+## 九、反模式检查清单
 
 | 序号 | 反模式 | 检测方式 |
 |------|--------|----------|

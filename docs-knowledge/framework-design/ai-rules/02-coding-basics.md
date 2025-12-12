@@ -426,7 +426,109 @@ public Long createOrder(OrderCreateRequest request) {
 }
 ```
 
-## 五、反模式检查清单
+## 五、链式调用规范 [MUST]
+
+### 5.1 链式调用限制
+
+```yaml
+rules:
+  - 同一类内的链式调用允许（如Builder模式）
+  - 继承体系中禁止链式调用（类型转换问题）
+  - 使用@Accessors(chain = true)时注意继承场景
+```
+
+### 5.2 问题说明
+
+在继承体系中使用链式调用会导致类型转换问题：
+
+```java
+// ❌ 错误：继承体系中的链式调用
+@Data
+@Accessors(chain = true)
+public class BaseRequest {
+    private String traceId;
+}
+
+@Data
+@Accessors(chain = true)
+public class OrderRequest extends BaseRequest {
+    private Long orderId;
+}
+
+// 问题：setTraceId()返回BaseRequest，无法继续调用setOrderId()
+OrderRequest request = new OrderRequest()
+    .setTraceId("123")      // 返回BaseRequest
+    .setOrderId(1001L);     // 编译错误：BaseRequest没有setOrderId方法
+```
+
+### 5.3 解决方案
+
+```java
+// ✅ 方案1：避免在继承体系中使用链式调用
+@Data
+public class BaseRequest {
+    private String traceId;
+}
+
+@Data
+public class OrderRequest extends BaseRequest {
+    private Long orderId;
+}
+
+// 使用传统setter
+OrderRequest request = new OrderRequest();
+request.setTraceId("123");
+request.setOrderId(1001L);
+
+// ✅ 方案2：使用泛型自引用（Self-Bounded Types）
+@Data
+@Accessors(chain = true)
+public abstract class BaseRequest<T extends BaseRequest<T>> {
+    private String traceId;
+
+    @SuppressWarnings("unchecked")
+    public T setTraceId(String traceId) {
+        this.traceId = traceId;
+        return (T) this;
+    }
+}
+
+@Data
+@Accessors(chain = true)
+public class OrderRequest extends BaseRequest<OrderRequest> {
+    private Long orderId;
+}
+
+// 正确：可以链式调用
+OrderRequest request = new OrderRequest()
+    .setTraceId("123")
+    .setOrderId(1001L);
+
+// ✅ 方案3：使用Builder模式替代
+@Builder
+public class OrderRequest {
+    private String traceId;
+    private Long orderId;
+}
+
+// 使用Builder
+OrderRequest request = OrderRequest.builder()
+    .traceId("123")
+    .orderId(1001L)
+    .build();
+```
+
+### 5.4 推荐实践
+
+```yaml
+recommendations:
+  - DTO/Request/Response类优先使用@Builder而非@Accessors(chain=true)
+  - 如需继承，父类不使用@Accessors(chain=true)
+  - Entity类避免深层继承，减少链式调用问题
+  - Builder模式在构建复杂对象时更清晰
+```
+
+## 六、反模式检查清单
 
 AI生成代码时，必须检查以下反模式：
 
@@ -442,3 +544,4 @@ AI生成代码时，必须检查以下反模式：
 | 8 | 多层if判空 | 检查嵌套null判断 |
 | 9 | 方法入参未校验 | 检查公开方法首行 |
 | 10 | 注释掉的代码块 | 检查多行注释内的代码 |
+| 11 | 继承体系中使用@Accessors(chain=true) | 检查extends关系+链式注解 |
