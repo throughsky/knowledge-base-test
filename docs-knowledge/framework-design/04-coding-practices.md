@@ -1,32 +1,54 @@
 # 第4章 编码技巧规范
 
-## 4.1 方法级优化技巧
+## 4.1 AI 编码优先级
 
-### 4.1.1 提炼方法与意图导向编程
+### 4.1.1 优先级定义
+
+| 级别 | 标识 | 含义 | AI 行为 |
+|------|------|------|---------|
+| 🔴 强制 | `[MUST]` | 违反将导致严重问题 | 必须遵守，不可妥协 |
+| 🟡 推荐 | `[SHOULD]` | 最佳实践 | 默认遵守，特殊情况可调整 |
+| 🟢 建议 | `[MAY]` | 可选优化 | 视情况采用 |
+
+### 4.1.2 安全优先原则 [MUST]
+
+```yaml
+priorities:
+  - SQL 注入防护 > 功能实现
+  - 密码加密存储 > 快速开发
+  - 敏感数据脱敏 > 日志完整性
+  - 权限验证 > 业务逻辑
+```
+
+### 4.1.3 性能意识原则 [SHOULD]
+
+```yaml
+checks:
+  - 索引是否合理设计
+  - 是否存在 N+1 查询
+  - 缓存策略是否正确
+  - 线程池参数是否合理
+  - 大数据量是否分页
+```
+
+---
+
+## 4.2 方法级优化技巧
+
+### 4.2.1 提炼方法与意图导向编程 [SHOULD]
 
 **适用场景**：
-
 - 多个方法代码重复
 - 方法中代码过长（一般不超过80行）
 - 方法中语句不在同一抽象层级
 
 **意图导向编程原则**：
-
 - 将处理流程和具体实现分离
 - 把问题分解为一系列功能性步骤
 - 假定功能步骤已实现，先组织整体流程
 - 最后再实现各个具体方法
 
-```
-示例 - 交易处理流程：
-1. 解析交易字符串
-2. 转换为词汇元素数组
-3. 标准化每个词汇
-4. 根据规模选择提交算法
-5. 返回提交结果
-```
-
-### 4.1.2 其他方法级技巧
+### 4.2.2 其他方法级技巧 [MAY]
 
 | 技巧 | 说明 |
 |------|------|
@@ -38,14 +60,12 @@
 
 ---
 
-## 4.2 条件判断优化
+## 4.3 条件判断优化
 
-### 4.2.1 使用卫语句替代嵌套条件
+### 4.3.1 使用卫语句替代嵌套条件 [SHOULD]
 
-**原则**：把复杂的条件表达式拆分成多个条件表达式，减少嵌套。
-
-```
-// 反例：多层嵌套
+```java
+// ❌ 反例：多层嵌套
 if (condition1) {
     if (condition2) {
         if (condition3) {
@@ -54,7 +74,7 @@ if (condition1) {
     }
 }
 
-// 正例：卫语句
+// ✅ 正例：卫语句
 if (!condition1) return;
 if (!condition2) return;
 if (!condition3) return;
@@ -63,25 +83,42 @@ if (!condition3) return;
 
 **优势**：降低复杂度、提高可读性、核心逻辑更清晰
 
-### 4.2.2 使用多态替代条件判断
+### 4.3.2 使用多态替代条件判断 [MAY]
 
 **适用场景**：当存在根据对象类型选择不同行为的条件表达式时
 
 **实现方式**：
-
 - 将每个分支放进子类内的覆写方法
 - 将原始函数声明为抽象函数
 - 利用多态机制自动选择正确的实现
 
 ---
 
-## 4.3 异常处理规范
+## 4.4 异常处理规范
 
-### 4.3.1 使用异常替代返回错误码
+### 4.4.1 禁止行为 [MUST]
 
-**原则**：非正常业务状态使用抛出异常方式，而不是返回错误码。
+```java
+// ❌ 禁止：吞掉异常
+try {
+    // 业务逻辑
+} catch (Exception e) {
+    // 空处理
+}
 
-**实施要点**：
+// ❌ 禁止：只打印异常
+catch (Exception e) {
+    e.printStackTrace();
+}
+
+// ✅ 正确：记录并处理异常
+catch (Exception e) {
+    log.error("操作失败, userId={}", userId, e);
+    throw new BusinessException("操作失败");
+}
+```
+
+### 4.4.2 异常处理原则 [SHOULD]
 
 - 通过最上层统一处理异常，转换成标准返回码
 - 不要使用异常处理正常的业务流程控制
@@ -89,153 +126,135 @@ if (!condition3) return;
 - 避免在 finally 语句块中抛出异常
 - finally 块中只做关闭资源类操作
 
-**典型模式**：
-
-```
-1. 业务逻辑层抛出业务异常
-       ↓
-2. 服务层简单调用，不处理异常
-       ↓
-3. 控制层（Controller/Filter）统一拦截处理异常
-```
-
-### 4.3.2 引入断言
-
-**使用原则**：
+### 4.4.3 引入断言 [MAY]
 
 - 只用于检查"一定必须为真"的条件
 - 不用于检查"应该为真"的条件
-- 如果断言条件不满足，代码仍能正常运行，则去掉断言
 
 ---
 
-## 4.4 空值处理
+## 4.5 空值处理
 
-### 4.4.1 引入 Null 对象或特殊对象
-
-**问题**：频繁的判空操作影响代码美观和可读性，增加 Bug 几率
+### 4.5.1 引入 Null 对象或特殊对象 [SHOULD]
 
 **解决方案**：
-
 - 创建一个特殊的空对象类
 - 空对象提供默认的安全行为
 - 使用 Optional 优雅处理
 
-**空指针产生原因**：
+```java
+// ✅ 正确：Optional
+public String getUserName(Long userId) {
+    return Optional.ofNullable(userMapper.selectById(userId))
+            .map(User::getName)
+            .orElse("未知用户");
+}
 
-- 数据库查询结果为 null
-- 集合/数组访问越界
-- 对象方法调用时对象为 null
+// ✅ 正确：返回空集合
+public List<Order> getOrders(Long userId) {
+    List<Order> orders = orderMapper.selectByUserId(userId);
+    return orders != null ? orders : Collections.emptyList();
+}
+```
 
 ---
 
-## 4.5 类设计优化
+## 4.6 类设计优化
 
-### 4.5.1 提炼类
-
-**适用场景**：
-
-- 类包含大量数据和函数
-- 逻辑复杂不易理解
-- 职责不断增加
-
-**判断依据**：
-
-- 某些数据和方法总是一起出现
-- 某些数据经常同时变化
-- 子类化只影响类的部分特性
-
-**原则**：高内聚低耦合
-
-### 4.5.2 组合优先于继承
+### 4.6.1 组合优先于继承 [SHOULD]
 
 **继承的局限性**：
-
 - 打破封装性
 - 子类依赖父类实现细节
 - 父类变化可能破坏子类
 
 **组合的优势**：
-
 - 通过私有域引用现有类实例
 - 不依赖现有类实现细节
 - 更加稳固和灵活
 
-**使用场景判断**：
+### 4.6.2 链式调用限制 [MUST]
 
-- 仅当存在真正的"is-a"关系时使用继承
-- 包内部使用继承是安全的
-- 其他情况优先考虑组合
+```java
+// ❌ 禁止：继承体系中使用 @Accessors(chain = true)
+@Data
+@Accessors(chain = true)
+public class BaseRequest { private String traceId; }
 
-### 4.5.3 接口优于抽象类
+@Data
+@Accessors(chain = true)
+public class OrderRequest extends BaseRequest { private Long orderId; }
 
-**接口优势**：
+// ✅ 正确：使用 @Builder 替代
+@Builder
+public class OrderRequest {
+    private String traceId;
+    private Long orderId;
+}
+```
 
-- 现有类可以轻松实现新接口
-- 是定义混合类型的理想选择
-- 允许构造非层次结构的类型框架
+### 4.6.3 接口优于抽象类 [SHOULD]
 
 **最佳实践**：接口 + 骨架实现类（模板方法设计模式）
 
 ---
 
-## 4.6 泛型使用规范
+## 4.7 安全编码规范
 
-| 规范 | 说明 |
-|------|------|
-| **优先考虑泛型** | 编译时类型安全、避免类型转换 |
-| **不要使用原生态类型** | 使用原生态类型会失去泛型优势 |
-| **消除非受检警告** | 每条警告都表示可能的 ClassCastException |
-| **PECS 原则** | Producer-Extends, Consumer-Super |
+### 4.7.1 SQL 安全 [MUST]
 
----
+```java
+// ❌ 禁止：SQL 拼接
+String sql = "SELECT * FROM user WHERE id = " + userId;
 
-## 4.7 代码质量提升技巧
+// ❌ 禁止：MyBatis 使用 ${}
+@Select("SELECT * FROM user WHERE name = '${name}'")
 
-| 技巧 | 说明 |
-|------|------|
-| **优先使用模板/工具类** | 减少重复代码，专注业务逻辑 |
-| **分离对象的创建与使用** | 工厂模式、构建器模式、依赖注入 |
-| **可访问性最小化** | 尽可能使每个类和成员不被外界访问 |
-| **可变性最小化** | 不可变类简单、线程安全、可自由共享 |
-| **静态成员类优于非静态成员类** | 非静态成员类会隐式持有外部类引用 |
+// ✅ 正确：MyBatis 参数化查询
+@Select("SELECT * FROM user WHERE id = #{userId}")
+User selectById(@Param("userId") Long userId);
+```
 
----
+### 4.7.2 密码与敏感信息 [MUST]
 
-## 4.8 参数校验与返回规范
+```java
+// ❌ 禁止：明文存储密码
+user.setPassword(rawPassword);
 
-### 4.8.1 优雅地参数校验
+// ❌ 禁止：硬编码敏感信息
+String apiKey = "sk-xxxx";
 
-**格式校验**：
+// ✅ 正确：密码 BCrypt 加密
+user.setPassword(BCrypt.hashpw(rawPassword, BCrypt.gensalt()));
 
-- 使用 hibernate-validator 框架
-- 在实体类上使用 @NotBlank、@NotNull 等注解
-- Controller 方法上使用 @Valid 注解
-
-**业务校验**：
-
-- 自定义校验注解
-- 实现 ConstraintValidator 接口
-
-### 4.8.2 统一返回值
-
-**原则**：
-
-- 所有接口使用统一的返回值结构
-- 包含状态码、消息、数据等标准字段
-- 便于接口调用方统一解析
-
-### 4.8.3 统一异常处理
-
-**实现方式**：
-
-- 使用 @ControllerAdvice
-- 使用 @ExceptionHandler
-- 统一转换异常为标准返回格式
+// ✅ 正确：从配置中心读取
+@Value("${api.key}")
+private String apiKey;
+```
 
 ---
 
-## 4.9 并发编程规范
+## 4.8 并发编程规范
+
+### 4.8.1 线程池规范 [MUST]
+
+```java
+// ❌ 禁止：使用 Executors 创建线程池
+ExecutorService executor = Executors.newFixedThreadPool(10);
+
+// ✅ 正确：手动创建线程池
+new ThreadPoolExecutor(
+    coreSize,
+    maxSize,
+    keepAlive,
+    TimeUnit.SECONDS,
+    new ArrayBlockingQueue<>(100),
+    new ThreadFactoryBuilder().setNameFormat("biz-pool-%d").build(),
+    new ThreadPoolExecutor.CallerRunsPolicy()
+);
+```
+
+### 4.8.2 其他并发规范 [SHOULD]
 
 | 规范 | 说明 |
 |------|------|
@@ -245,7 +264,47 @@ if (!condition3) return;
 
 ---
 
-## 4.10 性能优化技巧
+## 4.9 缓存规范
+
+### 4.9.1 缓存使用 [MUST]
+
+```java
+// ❌ 禁止：缓存无过期时间
+redisTemplate.opsForValue().set(key, value);
+
+// ✅ 正确：设置缓存过期时间
+redisTemplate.opsForValue().set(key, value, 30, TimeUnit.MINUTES);
+```
+
+### 4.9.2 Redis Key 命名 [SHOULD]
+
+```yaml
+format: 业务域:模块:资源:唯一标识
+separator: 冒号(:)
+```
+
+```java
+// ✅ 正确命名
+String userKey = "mall:user:info:" + userId;
+String orderKey = "mall:order:detail:" + orderId;
+```
+
+---
+
+## 4.10 数据查询规范
+
+### 4.10.1 分页查询 [MUST]
+
+```java
+// ❌ 禁止：无限制查询
+List<Order> orders = orderMapper.selectAll();
+
+// ✅ 正确：分页查询
+PageHelper.startPage(pageNum, pageSize);
+List<Order> orders = orderMapper.selectByUserId(userId);
+```
+
+### 4.10.2 性能优化 [SHOULD]
 
 | 技巧 | 说明 |
 |------|------|
@@ -254,19 +313,75 @@ if (!condition3) return;
 | **使用 StringBuilder 拼接字符串** | 减少对象创建 |
 | **不循环调用数据库** | 批量查询 + 转换为 Map + 内存匹配 |
 | **用业务代码代替多表 join** | 在应用层进行数据关联 |
-| **远程接口调用设置超时时间** | 防止线程"卡死" |
 
 ---
 
-## 4.11 其他最佳实践
+## 4.11 错误码规范
 
-| 实践 | 说明 |
-|------|------|
-| **尽量使用工具类** | CollectionUtils、StringUtils、Hutool 等 |
-| **面向接口编程** | 引用父类或抽象，而非实现 |
-| **魔法值用常量表示** | 提高可读性，便于维护 |
-| **有类型区分时定义好枚举** | 避免魔法数字，提供类型安全 |
-| **写好代码注释** | 解释为什么这样做，而不是怎么做 |
+### 4.11.1 错误码格式 [MUST]
+
+```
+格式：[系统编码4位][类型1位][序列号8位]
+类型：B=业务错误, C=客户端错误, T=系统错误
+成功码："0"
+```
+
+```java
+public enum ErrorCodeEnum {
+    SUCCESS("0", "success"),
+    USER_NOT_FOUND("1001B00000001", "用户不存在"),
+    PARAM_ERROR("1001C00000001", "参数校验失败"),
+    SYSTEM_ERROR("1001T00000001", "系统内部错误");
+}
+```
+
+---
+
+## 4.12 参数校验与返回规范
+
+### 4.12.1 参数校验 [MUST]
+
+**格式校验**：
+- 使用 hibernate-validator 框架
+- 在实体类上使用 @NotBlank、@NotNull 等注解
+- Controller 方法上使用 @Valid 注解
+
+**业务校验**：
+- 自定义校验注解
+- 实现 ConstraintValidator 接口
+
+### 4.12.2 统一返回值 [MUST]
+
+```java
+@Data
+public class CommonResponse<T> {
+    private String code;
+    private String message;
+    private T data;
+
+    public boolean isSuccess() { return "0".equals(code); }
+}
+```
+
+---
+
+## 4.13 反模式检查清单
+
+| 序号 | 反模式 | 检测方式 |
+|------|--------|----------|
+| 1 | SQL 字符串拼接 | 检查 SQL 语句构造方式 |
+| 2 | 使用 Executors 创建线程池 | 检查线程池创建方式 |
+| 3 | 空 catch 块 | 检查异常处理逻辑 |
+| 4 | 明文密码存储 | 检查密码处理方式 |
+| 5 | 缓存无过期时间 | 检查 Redis 操作 |
+| 6 | 无限制查询 | 检查是否有分页/条数限制 |
+| 7 | 硬编码敏感信息 | 检查配置管理方式 |
+| 8 | 日志打印敏感数据 | 检查日志输出内容 |
+| 9 | 未验证输入参数 | 检查参数校验注解 |
+| 10 | 资源未关闭 | 检查 try-with-resources |
+| 11 | 继承体系使用 @Accessors(chain=true) | 检查 extends + 链式注解 |
+| 12 | 测试使用固定 ID 数据 | 检查测试数据生成方式 |
+| 13 | 错误码格式不符合规范 | 检查是否为 13 位标准格式 |
 
 ---
 
